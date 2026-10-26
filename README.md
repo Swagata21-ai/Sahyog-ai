@@ -4,6 +4,8 @@ A rapid community disaster and relief coordination proof of concept. Submit an e
 
 > **Safety:** This demo is not an emergency service. AI output is informational prioritization support, not medical, rescue, or dispatch instructions. For immediate danger, contact local emergency services.
 
+Operations includes optional report translation, possible-duplicate checks, and recommendations from a fixed sample volunteer/supply roster. They are unverified coordination suggestions only; the app never assigns or dispatches anyone. Gemini helper requests send the selected report and up to eight current-session reports to Google for processing. Without a Gemini key, local rules can suggest possible duplicates and category-matched sample resources, but cannot translate.
+
 ## Run locally
 
 Requirements: Python 3.10+. Internet access and a Gemini API key enable live Gemini assessments; the form also works without a key using clearly labeled local rule-based estimates.
@@ -31,6 +33,7 @@ Open the local URL printed by Streamlit, usually `http://localhost:8501`.
 2. Review the assessment source, urgency score, and coordination steps in Operations.
 3. Resolve or reactivate a report and inspect the dashboard filters.
 4. Volunteer statuses in the demo are sample data, not confirmed availability or assignments.
+5. Expand a report's coordination helpers to translate it, check possible duplicates, and review sample resource suggestions.
 
 Without a Gemini API key, submit a report to try the local rules estimate, or use **Load sample reports** in Operations to explore the dashboard. Local rules use a small keyword list and category baselines; they do not understand context, can miss or misread details, and are not validated triage. Rule-based estimates and sample records are explicitly labeled and are not Gemini results.
 

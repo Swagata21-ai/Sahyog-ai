@@ -9,7 +9,20 @@ from sahyog_ai.gemini import (
     has_gemini_api_key,
 )
 from sahyog_ai.local_triage import assess_with_local_rules
-from sahyog_ai.models import Assessment, AssessmentSource, EmergencyReport
+from sahyog_ai.models import (
+    Assessment,
+    AssessmentSource,
+    EmergencyReport,
+    OperationsAssistance,
+)
+from sahyog_ai.operations_assist import (
+    OperationsAssistError,
+    SAMPLE_SUPPLIES,
+    SAMPLE_VOLUNTEERS,
+    TARGET_LANGUAGES,
+    analyze_with_gemini,
+    local_suggestions,
+)
 
 logging.basicConfig(level=logging.INFO)
 
@@ -99,6 +112,11 @@ if "pending_report" not in st.session_state:
     st.session_state.pending_report = None
 if "pending_gemini_error" not in st.session_state:
     st.session_state.pending_gemini_error = ""
+if "assistance_results" not in st.session_state:
+    st.session_state.assistance_results = {}
+if "assistance_errors" not in st.session_state:
+    st.session_state.assistance_errors = {}
+key_configured = has_gemini_api_key()
 
 
 def save_report(
@@ -127,6 +145,87 @@ def render_new_assessment(report: EmergencyReport) -> None:
     st.caption(report.assessment.urgency_rationale)
     for index, step in enumerate(report.assessment.action_steps, start=1):
         st.text(f"{index}. {step}")
+
+
+def request_assistance(
+    report: EmergencyReport,
+    target_language: str,
+    use_local_rules: bool = False,
+) -> None:
+    state_key = f"{report.id}:{target_language}"
+    comparison_reports = [
+        item for item in st.session_state.reports if item.id != report.id
+    ]
+    try:
+        if use_local_rules:
+            result = local_suggestions(report, comparison_reports)
+        else:
+            result = analyze_with_gemini(
+                report,
+                comparison_reports,
+                target_language,
+            )
+    except OperationsAssistError as exc:
+        st.session_state.assistance_errors[state_key] = str(exc)
+    else:
+        st.session_state.assistance_results[state_key] = result
+        st.session_state.assistance_errors.pop(state_key, None)
+
+
+def render_assistance(
+    result: OperationsAssistance,
+    reports_by_id: dict[str, EmergencyReport],
+) -> None:
+    source_label = (
+        "Gemini AI suggestions · verify before acting"
+        if result.source == "Gemini"
+        else "Local rules · not AI"
+    )
+    st.markdown(f"**{source_label}**")
+
+    if result.translated_description:
+        st.markdown(
+            f"**Translation to {result.target_language} · "
+            f"{result.detected_language} detected**"
+        )
+        st.text(result.translated_description)
+    else:
+        st.info("Translation is available with Gemini; local rules do not translate text.")
+
+    st.markdown("**Possible duplicate reports · verify manually**")
+    if result.duplicate_matches:
+        for match in result.duplicate_matches:
+            candidate = reports_by_id.get(match.report_id)
+            if candidate is None:
+                continue
+            st.text(
+                f"{candidate.category} · {candidate.location} · "
+                f"{match.similarity_score}% similarity signal — {match.rationale}"
+            )
+    else:
+        st.caption("No possible duplicates were suggested.")
+
+    for label, suggestions, catalog in (
+        (
+            "Sample volunteer suggestions · not assigned",
+            result.volunteer_suggestions,
+            SAMPLE_VOLUNTEERS,
+        ),
+        (
+            "Sample supply suggestions · not confirmed inventory",
+            result.supply_suggestions,
+            SAMPLE_SUPPLIES,
+        ),
+    ):
+        st.markdown(f"**{label}**")
+        if not suggestions:
+            st.caption("No matching sample options were suggested.")
+            continue
+        candidates_by_id = {candidate.id: candidate for candidate in catalog}
+        for suggestion in suggestions:
+            candidate = candidates_by_id.get(suggestion.candidate_id)
+            if candidate is not None:
+                st.text(f"{candidate.name} — {suggestion.rationale}")
 
 
 def make_demo_reports() -> list[EmergencyReport]:
@@ -201,7 +300,6 @@ report_tab, operations_tab = st.tabs(["＋  Submit a report", "▤  Operations"]
 
 with report_tab:
     st.subheader("Tell us what is happening")
-    key_configured = has_gemini_api_key()
     st.caption("Share the essentials so the response team can assess the need.")
     if key_configured:
         st.caption("Gemini is configured for live AI assessments.")
@@ -435,6 +533,60 @@ with operations_tab:
                 with st.expander(steps_label):
                     for index, step in enumerate(report.assessment.action_steps, start=1):
                         st.text(f"{index}. {step}")
+                with st.expander("Coordination helpers · translation, duplicates, matches"):
+                    target_language = st.selectbox(
+                        "Translate report to",
+                        TARGET_LANGUAGES,
+                        key=f"target_language_{report.id}",
+                    )
+                    assistance_key = f"{report.id}:{target_language}"
+                    st.caption(
+                        "On request, Gemini receives this report and up to 8 other "
+                        "current-session reports for comparison. Suggestions are not "
+                        "verified and never dispatch or assign anyone."
+                    )
+                    action_label = (
+                        "Run Gemini coordination helpers"
+                        if key_configured
+                        else "Get local suggestions · not AI"
+                    )
+                    if st.button(
+                        action_label,
+                        key=f"assist_{report.id}",
+                        use_container_width=True,
+                    ):
+                        request_assistance(
+                            report,
+                            target_language,
+                            use_local_rules=not key_configured,
+                        )
+                    if assistance_key in st.session_state.assistance_errors:
+                        st.error(st.session_state.assistance_errors[assistance_key])
+                        retry_column, local_column = st.columns(2)
+                        with retry_column:
+                            if st.button(
+                                "Retry Gemini helpers",
+                                key=f"retry_assist_{report.id}",
+                                use_container_width=True,
+                            ):
+                                request_assistance(report, target_language)
+                        with local_column:
+                            if st.button(
+                                "Use local suggestions instead",
+                                key=f"local_assist_{report.id}",
+                                use_container_width=True,
+                            ):
+                                request_assistance(
+                                    report,
+                                    target_language,
+                                    use_local_rules=True,
+                                )
+                    result = st.session_state.assistance_results.get(assistance_key)
+                    if result is not None:
+                        render_assistance(
+                            result,
+                            {item.id: item for item in st.session_state.reports},
+                        )
 
     with volunteer_column:
         st.markdown("#### Volunteer status")

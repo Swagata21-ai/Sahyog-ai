@@ -20,7 +20,7 @@ Source: `scope.md > The Core Loop` and `What "Working" Looks Like`.
 
 ## Screens and Layout
 
-The proof of concept uses one primary app surface with an emergency reporting area and an operations dashboard. The report area contains location, category, description, and a submit action. The operations area presents active and resolved reports with their category, location, description, assessment and source, recommendation, and status. Volunteer status is visible in the operations area.
+The proof of concept uses one primary app surface with an emergency reporting area and an operations dashboard. The report area contains location, category, description, and a submit action. The operations area presents active and resolved reports with their category, location, description, assessment and source, recommendation, and status. Optional per-report helpers translate a report, surface possible duplicates, and suggest matches from fixed sample volunteers and supplies. Volunteer status is visible in the operations area.
 
 No separate account, victim profile, or volunteer-management screen is required for this proof of concept.
 
@@ -28,7 +28,7 @@ Source: `scope.md > The POC Boundary`.
 
 ## Look and Feel
 
-Fast, clear, and practical in an emergency context. Prioritize legibility and make report status and urgency easy to distinguish. The learner has not specified a visual reference or a more detailed style.
+Colorful, modern, and practical in an emergency context. Use a bright palette and clear cards, while maintaining legibility and distinguishable status, urgency, and assessment-source labels. Color must not be the only way to understand urgency or status.
 
 Source: `scope.md > Inspiration & Identity`.
 
@@ -59,7 +59,7 @@ Source: `scope.md > The Unique Kernel`, `The Core Loop`, and `The POC Boundary`.
 - The dashboard shows reports created in the app, including their location, category, description, urgency assessment, recommendation, and active/resolved status.
 - Reports are grouped or filterable by active and resolved status so responders can focus on outstanding needs.
 - A responder can mark an active report resolved; the visible status updates. A resolved report can be returned to active.
-- Volunteer status is represented in the dashboard as a simple operational view; full volunteer assignment and supply matching are outside this proof of concept.
+- Volunteer status is represented in the dashboard as a simple sample view. Optional report helpers can suggest entries from a fixed sample roster, but do not represent real assignment or supply availability.
 - A user can load clearly labeled sample reports to explore the dashboard without a Gemini API key. Sample assessments must be identified as examples, never as Gemini output.
 - When there are no reports, show an empty state that invites the user to submit a report.
 
@@ -72,6 +72,24 @@ Acceptance criteria:
 
 Source: `scope.md > The Core Loop` and `The POC Boundary`.
 
+### Report translation and coordination suggestions
+
+- A coordinator can request translation of a report into a selected language; the original report text remains unchanged and visible.
+- A coordinator can request likely duplicate matches among other reports in the current app session. The app explains that a match is a lead to verify, not a confirmed duplicate.
+- A coordinator can request suggestions from a fixed, explicitly sample-only volunteer and supply roster. The response may refer only to the supplied candidate IDs; it does not create assignments or claim availability.
+- With Gemini configured, these helpers use a structured Gemini response. Without a key, local rules may suggest possible duplicates and category-matched sample resources; the result is labeled non-AI and translation is unavailable.
+- If Gemini fails, show the error and offer retry or an explicit local-rules alternative. Never silently label a local result as AI.
+- Keep helper results scoped to the current session and report. Do not dispatch, contact, or assign anyone.
+
+Acceptance criteria:
+- [ ] A Gemini translation is labeled as such, names the target language, and leaves the original text intact.
+- [ ] Possible duplicate suggestions identify the other report and explain that a coordinator must verify them.
+- [ ] Resource suggestions use only known sample roster entries and are labeled as unverified suggestions, never assignments.
+- [ ] Local helper output without a key is identified as non-AI; it does not pretend to translate.
+- [ ] A Gemini helper failure is visible and gives retry and explicit local-rules options.
+
+Source: `scope.md > The POC Boundary` and `The Core Loop`.
+
 ## States and Boundaries
 
 - **First use / empty dashboard** — Explain that no reports have been submitted yet and provide a path to the report form.
@@ -83,6 +101,8 @@ Source: `scope.md > The Core Loop` and `The POC Boundary`.
 - **Successful report** — Show the report and validated assessment in the operations view as active, with its source identified.
 - **Resolved report** — Show resolved status in the dashboard; allow a responder to return it to active.
 - **AI and safety boundary** — AI recommendations are informational prioritization support only. The app is not an emergency service; people facing immediate danger should contact local emergency services.
+- **Coordination helper boundary** — Translations may be imperfect, duplicate flags may be wrong, and sample matches do not confirm availability. A human must verify them; no action or dispatch is triggered.
+- **Gemini helper privacy** — When a coordinator requests Gemini helpers, report details and limited current-session comparison data are sent to Google's Gemini service using the configured key.
 - **Demo boundary** — This proof of concept demonstrates reports entered in the current app run. It does not promise durable storage, live synchronization between users, verified volunteer availability, or real-world dispatch.
 
 Source: `scope.md > The POC Boundary`, `Later`, and `Explicitly Cut`.
@@ -93,6 +113,8 @@ Source: `scope.md > The POC Boundary`, `Later`, and `Explicitly Cut`.
 - Use Gemini to assess urgency and produce a step-by-step recommendation.
 - When Gemini is unavailable, allow a transparent local rule-based estimate rather than blocking report submission; distinguish the source clearly.
 - Include both active/resolved crisis status and a volunteer-status view in the relief operations dashboard.
+- Add opt-in translation, possible-duplicate detection, and suggestions from a fixed sample volunteer/supply list, with clear human-verification and no-dispatch boundaries.
+- Use a colorful visual treatment without sacrificing legibility or status/source distinctions.
 - Allow dashboard exploration with explicitly labeled sample reports when no Gemini key is configured; real submissions use the separately labeled local-rules path.
 - Keep this as a demonstrable proof of concept, not an operational emergency-response service.
 
@@ -107,12 +129,14 @@ Source: `scope.md > The Unique Kernel`, `The POC Boundary`, and `Explicitly Cut`
 - A local rule-based report-assessment path for no-key runs and an explicit opt-in after Gemini request failure.
 - Clear empty, validation, in-progress, and AI-failure states.
 - A visible informational-only emergency guidance boundary.
+- Optional report translation, possible-duplicate detection, and suggestions from a sample volunteer/supply roster.
+- A colorful interface with legible status, urgency, and result-source cues.
 
 ## Deferred From the POC
 
 - Durable storage and reports that persist across restarts — not required to demonstrate the report-to-dashboard flow.
 - Live synchronization between different users — the POC is not a deployed coordination service.
-- Verified nearby volunteer availability, assignment, and supply matching — these require operational data and coordination beyond the current demo.
+- Verified nearby volunteer availability, assignment, and live supply matching — these require operational data and coordination beyond the current demo.
 - Real-world dispatch and integration with emergency services — explicitly outside the POC and unsafe to imply.
 
 ## Possible Later Enhancements

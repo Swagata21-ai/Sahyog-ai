@@ -29,6 +29,26 @@ Build mode: fast
   Learner check: Open the app and review an assessed report in the operations dashboard; switch it between active and resolved, inspect both views, and confirm the volunteer panel is labeled as sample data.
   Commit: `Add relief operations dashboard`
 
+- [x] **3. Add translation and coordination helpers**
+  Becomes usable: A coordinator can translate a report, review likely duplicate reports, and get suggestions drawn only from the fixed sample volunteer/supply roster. Gemini results are labeled as AI suggestions; without a key, local duplicate/resource suggestions are clearly non-AI and translation is unavailable.
+  Why now: These helpers extend the existing report-to-operations flow without changing core submission. Restricting recommendations to known sample IDs keeps suggestions reviewable and prevents invented dispatch actions.
+  PRD ref: `prd.md > Features and Behavior > Report translation and coordination suggestions`; `prd.md > States and Boundaries`
+  Spec ref: `spec.md > Components > Report coordination helpers`; `spec.md > Components > Sample relief roster`; `spec.md > Data Model`; `spec.md > Important Failure Modes`
+  Build: Add validated helper response types, a Gemini structured-output request for selected-language translation, possible duplicates, and allow-listed sample resource suggestions; add transparent local duplicate/resource suggestions and explicit retry/local fallback; show the original beside the translation and mark every recommendation as unverified.
+  Verify (mechanical): Run `python -m compileall -q app.py sahyog_ai tests` and `python -m unittest discover -s tests -v`; test structured Gemini request/validation, candidate-ID rejection, no-key labeling, original-text preservation, and visible failure with explicit local fallback.
+  Learner check: Submit/load sample reports, request helpers on one report, and confirm translation, possible duplicates, and suggested sample resources are distinct from confirmed actions.
+  Commit: `Add report translation and coordination helpers`
+
+- [ ] **4. Refresh the interface with a colorful visual system**
+  Becomes usable: The report form and operations dashboard use a brighter, colorful palette with clear cards and badges while keeping urgency, report status, and source easy to distinguish.
+  Why now: Apply the requested visual update after the new helper content exists so its layout, labels, and safety notes are styled together rather than retouched twice.
+  PRD ref: `prd.md > Look and Feel`; `prd.md > Screens and Layout`
+  Spec ref: `spec.md > Look and Feel`; `spec.md > Components > Emergency report form`; `spec.md > Components > Relief operations dashboard`
+  Build: Refresh the Streamlit CSS and visible labels/cards with teal, violet, coral, and sunny accents; preserve accessible contrast, responsive layout, and text labels independent of color.
+  Verify (mechanical): Run the full compile and unit-test commands; open the local app and inspect both tabs for legibility, overflow, source/status badges, and the emergency disclaimer.
+  Learner check: Open both tabs, submit a fictional report, inspect helper results, and tell me what feels clear or crowded.
+  Commit: `Refresh Sahyog AI colorful interface`
+
 ## Hands-on Checkpoints
 
 - [x] Early usable behavior explored — learner observed the missing-key message; the error path was verified to save no report, and no change was requested.
@@ -54,6 +74,8 @@ Activity mode: [live app and editor, explicit static fallback, focused alternati
 
 ## Revisions
 
+- Added the requested translation, possible duplicate detection, and sample volunteer/supply suggestions; all are optional coordinator aids, never real assignment or dispatch. Added a colorful UI refresh. Gemini is used when configured; no-key local suggestions remain labeled non-AI and translation is unavailable.
+- Implemented report translation, possible duplicate detection, and bounded sample-resource suggestions with explicit source labels, opt-in local fallback, and no-key rules; structured response, candidate-ID allowlisting, UI fallback, and app integration pass tests. All 22 unit tests and compile checks passed. Live Gemini output requires a local key.
 - Live Gemini output was not verified in this environment because no `GEMINI_API_KEY` is configured; tests cover request wiring, response validation, and visible missing-key/transport failures. A real assessment still needs a locally configured key.
 - Added a no-key dashboard preview so hackathon reviewers can explore operations controls without credentials; sample results remain explicitly non-AI and real Gemini submissions still require a key.
 - Added a no-key report submission path using transparent local rules at the learner's request; Gemini remains the live AI path when configured, and fallback after a request failure requires an explicit choice.

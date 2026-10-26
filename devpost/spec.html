@@ -59,7 +59,7 @@
     <header>
       <div class="eyebrow">Technical blueprint · Sahyog AI</div>
       <h1>Small pieces, one real flow</h1>
-      <p class="lede">A local Streamlit app connects Gemini when configured—or transparent local rules without a key—to a relief-operations dashboard.</p>
+      <p class="lede">A colorful local Streamlit app connects Gemini-assisted report triage and optional translation to human-reviewed operations suggestions.</p>
       <span class="badge">Spec approved</span>
     </header>
 
@@ -68,7 +68,7 @@
       <div class="flow">
         <svg viewBox="0 0 940 235" role="img" aria-labelledby="diagram-title diagram-description">
           <title id="diagram-title">Sahyog AI technical data flow</title>
-          <desc id="diagram-description">A report form uses Gemini when configured or local rules without a key. Pydantic validates the assessment, its source is recorded, and the report appears in the dashboard.</desc>
+          <desc id="diagram-description">A report form uses Gemini when configured or local rules without a key. Validated assessment and optional helper suggestions are labeled, then shown for human review in the dashboard.</desc>
           <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#1d6b50"></path></marker></defs>
           <rect x="10" y="52" width="170" height="126" rx="16" fill="#fffefa" stroke="#dce2d8" stroke-width="2"></rect>
           <text x="30" y="89" fill="#10251f" font-size="17" font-weight="700">Streamlit form</text>
@@ -100,10 +100,12 @@
         <article class="card"><h3>Report form · <code>app.py</code></h3><p>Collects and validates user input, shows the safety boundary, and starts assessment.</p></article>
         <article class="card"><h3>Gemini · <code>sahyog_ai/gemini.py</code></h3><p>When configured, sends the report to the model with a structured output request and explicit error handling.</p></article>
         <article class="card"><h3>Local rules · <code>sahyog_ai/local_triage.py</code></h3><p>When no key is configured, calculates an explicitly labeled code-based estimate; never presents it as AI.</p></article>
+        <article class="card"><h3>Coordination helpers · <code>sahyog_ai/operations_assist.py</code></h3><p>Optionally translates reports, flags possible duplicates, and suggests only fixed sample roster IDs. All suggestions need human verification.</p></article>
+        <article class="card"><h3>Local helper fallback</h3><p>Without a key, uses transparent category and word-overlap rules for sample suggestions. It never invents translation or real availability.</p></article>
         <article class="card"><h3>Data checks · <code>sahyog_ai/models.py</code></h3><p>Checks score and action steps and records whether a result came from Gemini, local rules, or sample data.</p></article>
         <article class="card"><h3>Operations · <code>app.py</code></h3><p>Shows reports, filters active/resolved items, updates statuses, and explains the empty state. A no-key preview loads separate sample records that are never presented as Gemini output.</p></article>
         <article class="card"><h3>Volunteer sample · <code>app.py</code></h3><p>Shows example statuses with clear labels; does not suggest real availability or dispatch.</p></article>
-        <article class="card safety"><h3>Safety</h3><p>AI output and local rule estimates are informational only, not validated triage; the app is not an emergency service and advises contacting local emergency services for immediate danger.</p></article>
+        <article class="card safety"><h3>Safety</h3><p>AI output and local rule estimates are informational only, not validated triage. Sample suggestions are not assignment or dispatch, and Gemini helper requests send report details to Google for processing.</p></article>
       </div>
     </section>
 
@@ -117,7 +119,8 @@
 │   ├── __init__.py
 │   ├── gemini.py              # Gemini API request + failure handling
 │   ├── local_triage.py        # No-key category/keyword estimate
-│   └── models.py              # Validated assessment + report source
+│   ├── operations_assist.py  # Translation, duplicate, and sample-match helpers
+│   └── models.py             # Validated assessment + report source
 ├── requirements.txt          # Streamlit, google-genai, Pydantic
 ├── .env.example              # Secret-free configuration example
 ├── .gitignore                # Ignore local credentials/profile

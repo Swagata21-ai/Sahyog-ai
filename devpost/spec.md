@@ -60,7 +60,7 @@ Documentation:
 
 ## Look and Feel
 
-Use a clean, legible operations dashboard with a calm neutral canvas, dark readable text, and green as the primary action color. Use distinct amber/red urgency treatments and clear active/resolved badges so color is not the only status cue. Keep form labels and emergency-safety messaging direct and practical. Use Streamlit's layout, columns, forms, and status elements rather than adding a styling framework; exact custom typography and pixel-level control are limited by Streamlit's native components.
+Use a bright, colorful operations dashboard with a warm light canvas, high-contrast text, and teal, violet, coral, and sunny accent colors. Give the hero and key cards colorful surfaces while keeping form fields and report text calm and readable. Keep distinct urgency treatments and active/resolved/source text badges so color is never the only status cue. Use Streamlit's layout, columns, forms, and status elements rather than adding a styling framework; exact custom typography and pixel-level control are limited by Streamlit's native components.
 
 PRD ref: `prd.md > Look and Feel`.
 
@@ -86,6 +86,14 @@ When a configured Gemini request fails, this component is used only after the us
 
 Implements `prd.md > Features and Behavior > Emergency report and AI assessment` and `States and Boundaries`.
 
+### Report coordination helpers (`sahyog_ai/operations_assist.py`)
+
+For a report, requests a structured Gemini result containing a translation into the chosen target language, possible duplicates among the bounded current-session report candidates, and suggestions selected from the fixed sample volunteer and supply lists. The service validates the response and rejects candidate IDs outside those lists. The original report remains unchanged. No match creates an assignment or dispatch.
+
+Without a Gemini key, a separate local-rules helper may identify likely duplicate reports and category-matched sample resources. It labels this output non-AI and leaves translation unavailable. If Gemini fails, the UI shows the failure and requires the coordinator to choose retry or local rules.
+
+Implements `prd.md > Features and Behavior > Report translation and coordination suggestions`.
+
 ### Assessment and report data (`sahyog_ai/models.py`)
 
 Defines the validated assessment (integer urgency from 1 to 5, short rationale, ordered action steps) and report record (unique ID, submitted details, assessment source—Gemini, Local rules, or Demo example—creation time, and active/resolved status). The 1–5 range is an implementation convention for a legible demo scale, not a validated emergency triage standard.
@@ -104,11 +112,19 @@ Displays a small, static, explicitly labeled sample volunteer-status view. It de
 
 Implements `prd.md > Features and Behavior > Relief operations dashboard` and `States and Boundaries`.
 
+### Sample relief roster (`sahyog_ai/operations_assist.py`)
+
+Defines a small fixed list of illustrative volunteer skills and supply categories. Both AI and local suggestions are constrained to these known entries, visibly labeled as sample, unverified recommendations. The list does not represent actual availability, inventory, assignment, or dispatch.
+
+Implements `prd.md > Features and Behavior > Report translation and coordination suggestions`.
+
 ## Data Model
 
 - **EmergencyReport:** `id` (unique string), `location` (string), `category` (Medical/Food/Water/Shelter), `description` (string), `assessment` (validated score 1–5, rationale, and action steps), `assessment_source` (Gemini, Local rules, or Demo example), `status` (active/resolved), and `created_at` (timestamp).
 - **Assessment:** Gemini-generated, local-rule, or sample score, short rationale, and ordered recommendations, validated against a Pydantic schema before creating an EmergencyReport.
 - **Volunteer sample:** a small fixed list of example names/statuses in the app; clearly labeled as demonstration data and not connected to real volunteers.
+- **Operations assistance:** validated detected-language and translated text, possible-duplicate report IDs with a similarity signal, sample volunteer IDs, sample supply IDs, and an explicit source (`Gemini` or `Local rules`). Gemini candidate IDs are checked against bounded session reports and the fixed roster before display.
+- **Sample roster:** fixed candidate IDs, names, supported categories, and caveats; all matches are suggestions only and never update a person's status or report state.
 - **Storage and updates:** reports live in `st.session_state` for the current browser/app session. New reports are appended only after successful validation; status actions update the corresponding in-memory report. Refreshes during the same session preserve state according to Streamlit's session behavior; ending/restarting the app loses reports. There is no account, cross-user sharing, or durable storage.
 
 ## File Structure
@@ -120,6 +136,7 @@ sahyog-ai/
 │   ├── __init__.py           # Package marker
 │   ├── gemini.py             # Gemini request and API error handling
 │   ├── local_triage.py       # Transparent no-key rule-based estimate
+│   ├── operations_assist.py  # Translation, duplicate, and sample-match helpers
 │   └── models.py             # Pydantic response validation and report types
 ├── tests/
 │   └── test_core.py          # Built-in unittest checks for validation and key errors
@@ -139,6 +156,7 @@ sahyog-ai/
 - **Request:** `client.interactions.create(model="gemini-3.8-flash", input=<report category, location, and description plus safety-focused instructions>, response_format=<JSON schema for score, rationale, and steps>)`.
 - **Response handling:** validate the returned JSON with Pydantic; reject missing, malformed, or out-of-range scores and empty action steps.
 - **Credentials:** `GEMINI_API_KEY` in the local environment; do not hardcode, print, or commit it.
+- **Privacy:** a coordinator's explicit helper request sends the selected report details and up to eight current-session comparison reports, plus the fixed sample candidate list, to Gemini. The original report remains unchanged.
 - **Cost/limits:** Google AI Studio API access is governed by model/account rate limits and may incur charges depending on the account and tier. Check current [pricing](https://ai.google.dev/gemini-api/docs/pricing) and [rate limits](https://ai.google.dev/gemini-api/docs/rate-limits) before use; no cost or quota is assumed here.
 - **Documentation:** [API quickstart](https://ai.google.dev/gemini-api/docs/get-started?lang=python), [structured output](https://ai.google.dev/gemini-api/docs/structured-output?lang=python), and [Python SDK](https://github.com/googleapis/python-genai).
 
@@ -149,6 +167,8 @@ No database, map service, hosting provider, messaging provider, or other externa
 - **Missing API key** → use local category/keyword rules for the submitted report and label the assessment `Local rules · not AI`; explain that Gemini needs a key for live AI analysis.
 - **No API key during a demo** → allow loading sample records to explore the dashboard, with every score and recommendation visibly marked as an example, not Gemini output.
 - **Gemini request failure or quota/network error** → show a concise failure message and retry option; offer local rules as a separate explicit action and label the result as non-AI.
+- **Gemini helper failure** → preserve the report, show the error, and allow retry or explicit local helper suggestions; translation is not faked.
+- **Unknown helper candidate ID** → reject the structured result instead of showing a resource or report that was not in the provided candidate lists.
 - **Malformed or unsafe-looking AI response** → reject it through schema/range validation and offer retry; display the fixed emergency-services disclaimer independently of the model response.
 - **Empty dashboard** → explain that submitted reports appear there and show the form.
 
@@ -159,6 +179,7 @@ No database, map service, hosting provider, messaging provider, or other externa
 - **Static sample reports for no-key exploration** instead of fabricated AI output — reviewers can exercise dashboard behavior without credentials while the real Gemini path remains explicit and verifiable.
 - **Structured Gemini assessment in the submit flow** instead of background dispatch or automatic assignment — keeps the AI kernel visible and verifiable in the short demo.
 - **Small explicit category/keyword rule set** instead of blocking the form when there is no API key — makes a no-key demo possible while clearly distinguishing the fallback from AI.
+- **Small sample roster and bounded suggestions** instead of live volunteer/supply integrations — the app can demonstrate matching UX without claiming real availability or dispatch.
 - **A simple 1–5 score** instead of an operational triage protocol — easy to display for the prototype, explicitly not validated for real-world decisions.
 
 ## Decisions and Open Issues

@@ -32,6 +32,8 @@ In a short demo, submit a local emergency report and see Gemini return a severit
 - A demonstrable coordination flow connecting a report and its AI assessment to the operations view.
 - An explicitly labeled sample-data path to explore dashboard behavior without an API key; sample results must not be presented as Gemini output.
 - A transparent local rule-based estimate when Gemini is not configured, labeled as non-AI and not validated for real emergency triage.
+- Optional report helpers to translate a report, flag possible duplicate reports, and suggest matches from a fixed sample volunteer/supply roster. These are suggestions for a human coordinator, never actual assignments.
+- A brighter, colorful interface that keeps status, source, and urgency labels legible.
 
 ## Later
 - Real-time coordination and operational deployment for actual emergencies.

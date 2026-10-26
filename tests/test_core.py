@@ -11,6 +11,11 @@ from streamlit.testing.v1 import AppTest
 from sahyog_ai.gemini import GeminiAssessmentError, assess_report, parse_assessment
 from sahyog_ai.local_triage import assess_with_local_rules
 from sahyog_ai.models import Assessment, EmergencyReport
+from sahyog_ai.operations_assist import (
+    OperationsAssistError,
+    analyze_with_gemini,
+    local_suggestions,
+)
 
 
 class AssessmentTests(unittest.TestCase):
@@ -82,6 +87,107 @@ class AssessmentTests(unittest.TestCase):
         self.assertTrue(
             any("local emergency services" in step for step in assessment.action_steps)
         )
+
+    def test_local_operations_suggestions_are_non_ai_and_never_translate(self):
+        current = EmergencyReport(
+            location="North Block",
+            category="Water",
+            description="Floodwater entering homes near the school; residents need clean water.",
+            assessment=Assessment(
+                severity_score=3,
+                urgency_rationale="Local keyword match.",
+                action_steps=["Verify the report."],
+            ),
+            assessment_source="Local rules",
+        )
+        similar = EmergencyReport(
+            location="North Block",
+            category="Water",
+            description="Floodwater entering homes near school; residents need clean water.",
+            assessment=current.assessment,
+            assessment_source="Local rules",
+        )
+
+        result = local_suggestions(current, [current, similar])
+
+        self.assertEqual(result.source, "Local rules")
+        self.assertIsNone(result.translated_description)
+        self.assertEqual(result.duplicate_matches[0].report_id, similar.id)
+        self.assertEqual(result.supply_suggestions[0].candidate_id, "supply-water")
+        self.assertEqual(result.volunteer_suggestions[0].candidate_id, "volunteer-water")
+
+    def test_gemini_operations_helpers_validate_and_allowlist_suggestions(self):
+        current = EmergencyReport(
+            location="North Block",
+            category="Water",
+            description="Se necesita agua potable.",
+            assessment=Assessment(
+                severity_score=2,
+                urgency_rationale="A water need was reported.",
+                action_steps=["Confirm the request."],
+            ),
+        )
+        similar = EmergencyReport(
+            location="North Block",
+            category="Water",
+            description="Water requested at the north block.",
+            assessment=current.assessment,
+        )
+        client = Mock()
+        client.interactions.create.return_value = SimpleNamespace(
+            output_text=(
+                "{"
+                '"detected_language":"Spanish",'
+                '"translated_description":"Clean drinking water is needed.",'
+                f'"duplicate_matches":[{{"report_id":"{similar.id}","similarity_score":82,'
+                '"rationale":"Same location and water need."}],'
+                '"volunteer_suggestions":[{"candidate_id":"volunteer-water",'
+                '"rationale":"Water-response skill match."}],'
+                '"supply_suggestions":[{"candidate_id":"supply-water",'
+                '"rationale":"Drinking water packs match the request."}]'
+                "}"
+            )
+        )
+        with (
+            patch.dict(os.environ, {"GEMINI_API_KEY": "test-key"}),
+            patch("sahyog_ai.operations_assist.genai.Client", return_value=client),
+        ):
+            result = analyze_with_gemini(current, [current, similar], "English")
+
+        self.assertEqual(result.source, "Gemini")
+        self.assertEqual(result.detected_language, "Spanish")
+        self.assertEqual(result.translated_description, "Clean drinking water is needed.")
+        self.assertEqual(result.duplicate_matches[0].report_id, similar.id)
+        self.assertIn(similar.id, client.interactions.create.call_args.kwargs["input"])
+
+    def test_gemini_operations_helpers_reject_unknown_sample_ids(self):
+        current = EmergencyReport(
+            location="North Block",
+            category="Water",
+            description="Water needed.",
+            assessment=Assessment(
+                severity_score=2,
+                urgency_rationale="A water need was reported.",
+                action_steps=["Confirm the request."],
+            ),
+        )
+        client = Mock()
+        client.interactions.create.return_value = SimpleNamespace(
+            output_text=(
+                '{"detected_language":"English",'
+                '"translated_description":"Water needed.",'
+                '"duplicate_matches":[],'
+                '"volunteer_suggestions":[{"candidate_id":"invented-team",'
+                '"rationale":"Suggested."}],'
+                '"supply_suggestions":[]}'
+            )
+        )
+        with (
+            patch.dict(os.environ, {"GEMINI_API_KEY": "test-key"}),
+            patch("sahyog_ai.operations_assist.genai.Client", return_value=client),
+        ):
+            with self.assertRaisesRegex(OperationsAssistError, "unknown sample volunteer"):
+                analyze_with_gemini(current, [], "English")
 
     def test_missing_api_key_does_not_create_an_assessment(self):
         with patch.dict(os.environ, {"GEMINI_API_KEY": ""}):
@@ -186,6 +292,91 @@ class AssessmentTests(unittest.TestCase):
         )
         self.assertTrue(
             any("Local rules · not AI" in item.value for item in app.markdown)
+        )
+
+    def test_no_key_operations_helpers_render_labeled_local_suggestions(self):
+        assessment = Assessment(
+            severity_score=3,
+            urgency_rationale="A local keyword matched.",
+            action_steps=["Verify the report."],
+        )
+        current = EmergencyReport(
+            location="North Block",
+            category="Water",
+            description="Floodwater entering homes near the school; residents need clean water.",
+            assessment=assessment,
+            assessment_source="Local rules",
+        )
+        similar = EmergencyReport(
+            location="North Block",
+            category="Water",
+            description="Floodwater entering homes near school; residents need clean water.",
+            assessment=assessment,
+            assessment_source="Local rules",
+        )
+        app = AppTest.from_file(Path(__file__).resolve().parents[1] / "app.py")
+        app.session_state["reports"] = [current, similar]
+
+        with patch.dict(os.environ, {"GEMINI_API_KEY": ""}):
+            app.run()
+            next(
+                button
+                for button in app.button
+                if button.key == f"assist_{current.id}"
+            ).click().run()
+
+        self.assertFalse(app.exception)
+        result = app.session_state.assistance_results[f"{current.id}:English"]
+        self.assertEqual(result.source, "Local rules")
+        self.assertIsNone(result.translated_description)
+        self.assertEqual(result.duplicate_matches[0].report_id, similar.id)
+        self.assertTrue(
+            any("Sample volunteer suggestions · not assigned" in item.value for item in app.markdown)
+        )
+
+    def test_gemini_helper_failure_offers_explicit_local_suggestions(self):
+        report = EmergencyReport(
+            location="North Block",
+            category="Water",
+            description="Water is needed.",
+            assessment=Assessment(
+                severity_score=2,
+                urgency_rationale="Water request.",
+                action_steps=["Verify the need."],
+            ),
+        )
+        client = Mock()
+        client.interactions.create.side_effect = httpx.ConnectError("offline")
+        app = AppTest.from_file(Path(__file__).resolve().parents[1] / "app.py")
+        app.session_state["reports"] = [report]
+        with (
+            patch.dict(os.environ, {"GEMINI_API_KEY": "test-key"}),
+            patch("sahyog_ai.operations_assist.genai.Client", return_value=client),
+        ):
+            app.run()
+            next(
+                button
+                for button in app.button
+                if button.key == f"assist_{report.id}"
+            ).click().run()
+            self.assertIn(
+                f"{report.id}:English",
+                app.session_state.assistance_errors,
+            )
+            next(
+                button
+                for button in app.button
+                if button.key == f"local_assist_{report.id}"
+            ).click().run()
+
+        self.assertFalse(app.exception)
+        self.assertEqual(
+            app.session_state.assistance_results[f"{report.id}:English"].source,
+            "Local rules",
+        )
+        self.assertNotIn(
+            f"{report.id}:English",
+            app.session_state.assistance_errors,
         )
 
     def test_gemini_failure_requires_explicit_local_rules_choice(self):

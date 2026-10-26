@@ -87,9 +87,9 @@
       <div class="layout">
         <article class="card"><h3>Emergency report</h3><p>One form collects location, Medical/Food/Water/Shelter category, and a crisis description. Gemini is used when configured; otherwise a transparent local rule estimate is labeled non-AI. Missing required details get a clear prompt.</p></article>
         <article class="card"><h3>Operations dashboard</h3><p>Reports show category, location, description, assessment source, urgency, recommendation, and status. Responders can focus on active or resolved reports and change a report's status. Sample cases can be loaded without a key and are never shown as Gemini output.</p></article>
-        <article class="card"><h3>Look and feel</h3><p>Fast, clear, and practical for an emergency context. Make status and urgency easy to distinguish. No specific font or visual reference was provided.</p></article>
-        <article class="card"><h3>Volunteer status</h3><p>Show a simple volunteer-status view. Do not imply volunteers are verified, available, or assigned; full matching is outside this proof of concept.</p></article>
-        <article class="card safety wide"><h3>Important safety boundary</h3><p>AI output and local rule estimates are informational only—not validated triage or authoritative medical, rescue, or dispatch instruction. This demo is not an emergency service. Anyone facing immediate danger should contact local emergency services.</p></article>
+        <article class="card"><h3>Look and feel</h3><p>Use a colorful, modern palette and clear cards while keeping report details, urgency, status, and source easy to read.</p></article>
+        <article class="card"><h3>Volunteer status</h3><p>Show sample volunteer status and optional suggestions from a fixed sample roster. Do not imply real availability, assignment, or dispatch.</p></article>
+        <article class="card safety wide"><h3>Important safety boundary</h3><p>AI output and local rule estimates are informational only—not validated triage or authoritative medical, rescue, or dispatch instruction. Translations and duplicate flags may be wrong; sample matches are unverified suggestions, not assignments. This demo is not an emergency service. Anyone facing immediate danger should contact local emergency services.</p></article>
       </div>
     </section>
 
@@ -123,6 +123,19 @@
         </div>
       </details>
       <details>
+        <summary>Translate reports and get coordination suggestions</summary>
+        <div class="detail-body">
+          <p>Per-report helpers can translate into a selected language, flag possible duplicates from the current session, and suggest only known sample volunteers and supplies. The original report stays unchanged; people must verify results and no assignment or dispatch is made.</p>
+          <ul class="criteria">
+            <li>Gemini results identify the target language and preserve the submitted text.</li>
+            <li>Duplicate candidates come only from the provided current-session reports and are labeled for human verification.</li>
+            <li>Resource suggestions can use only known sample IDs and are not confirmed availability or inventory.</li>
+            <li>Without Gemini, local duplicate/resource suggestions are labeled non-AI; translation is unavailable rather than fabricated.</li>
+            <li>A Gemini failure is visible and offers retry or an explicit local-rules alternative.</li>
+          </ul>
+        </div>
+      </details>
+      <details>
         <summary>Failure, empty, and demo states</summary>
         <div class="detail-body">
           <ul class="criteria">
@@ -137,8 +150,8 @@
     </section>
 
     <section class="layout" aria-label="Scope and decisions">
-      <article class="card"><h3>Included in this proof</h3><ul><li>Emergency report form and validation</li><li>Gemini urgency assessment and recommendation</li><li>Operations dashboard with active/resolved status</li><li>No-key sample preview, clearly distinct from Gemini output</li><li>Volunteer-status display and clear safety messaging</li></ul></article>
-      <article class="card"><h3>Deferred or not a goal</h3><ul><li>Durable storage and live synchronization</li><li>Verified volunteer assignment or supply matching</li><li>Real-world dispatch or emergency-service replacement</li></ul></article>
+      <article class="card"><h3>Included in this proof</h3><ul><li>Emergency report form and validation</li><li>Gemini assessment and optional translation/duplicate suggestions</li><li>Sample volunteer/supply recommendations with human verification</li><li>Colorful operations dashboard with active/resolved status</li><li>No-key sample preview and transparent local suggestions</li></ul></article>
+      <article class="card"><h3>Deferred or not a goal</h3><ul><li>Durable storage and live synchronization</li><li>Verified volunteer availability, actual assignments, or real inventory matching</li><li>Real-world dispatch or emergency-service replacement</li></ul></article>
     </section>
 
     <footer class="foot">Canonical product plan: <a href="./prd.md">prd.md</a> · Source scope: <a href="./scope.md">scope.md</a>. The Markdown PRD is authoritative.</footer>
