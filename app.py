@@ -37,69 +37,107 @@ st.markdown(
     """
     <style>
     :root {
-      --ink: #142a24;
-      --muted: #60736a;
-      --green: #16704f;
-      --green-dark: #0e4f39;
-      --canvas: #f5f7f3;
-      --line: #dfe7df;
+      --ink: #20203c;
+      --muted: #656783;
+      --violet: #6846d7;
+      --violet-dark: #5031b2;
+      --canvas: #f7f5ff;
+      --line: #e5e1f2;
     }
-    .stApp { background: var(--canvas); }
-    .block-container { max-width: 1320px; padding-top: 2rem; padding-bottom: 4rem; }
+    .stApp {
+      background: linear-gradient(160deg, #f7f5ff 0%, #fff9f4 48%, #f2fbff 100%);
+      color: var(--ink);
+    }
+    .block-container { max-width: 1380px; padding-top: 1.7rem; padding-bottom: 4rem; }
     [data-testid="stHeader"] { background: transparent; }
     .hero {
-      padding: 1.8rem 2rem;
-      border: 1px solid var(--line);
-      border-radius: 22px;
-      background: linear-gradient(115deg, #103d2f 0%, #176b4c 62%, #2c835e 100%);
+      padding: 2rem 2.2rem;
+      border: 1px solid #7560df;
+      border-radius: 24px;
+      background: linear-gradient(115deg, #4430a8 0%, #7850da 55%, #e66e9a 100%);
       color: white;
-      margin-bottom: 1.2rem;
+      margin-bottom: 1.25rem;
+      box-shadow: 0 16px 40px rgba(83, 57, 171, .18);
     }
     .hero-kicker {
-      color: #cde8d5; font-size: .78rem; font-weight: 750;
+      color: #f1dfff; font-size: .78rem; font-weight: 750;
       letter-spacing: .14em; text-transform: uppercase;
     }
     .hero h1 { color: white; font-size: clamp(2rem, 4vw, 3rem); margin: .45rem 0; }
-    .hero p { color: #e0eee4; margin: 0; font-size: 1.05rem; }
+    .hero p { color: #f8efff; margin: 0; font-size: 1.05rem; }
+    .feature-pills { display: flex; flex-wrap: wrap; gap: .55rem; margin-top: 1.15rem; }
+    .feature-pill {
+      display: inline-block; padding: .35rem .75rem; border-radius: 99px;
+      background: rgba(255, 255, 255, .17); border: 1px solid rgba(255, 255, 255, .34);
+      color: white; font-size: .82rem; font-weight: 700;
+    }
     .notice {
-      border: 1px solid #ecd9a8; background: #fff8e8; color: #684d16;
-      border-radius: 12px; padding: .85rem 1rem; margin: .8rem 0 1rem;
+      border: 1px solid #ffc5a6; background: #fff3eb; color: #793b24;
+      border-radius: 14px; padding: .9rem 1rem; margin: .8rem 0 1rem;
       font-size: .9rem;
     }
     .metric-card, .report-card, .volunteer-card {
-      border: 1px solid var(--line); border-radius: 16px;
+      border: 1px solid var(--line); border-radius: 17px;
       background: white; padding: 1rem 1.15rem; margin-bottom: .85rem;
     }
-    .score {
-      display: inline-block; border-radius: 99px; background: #e5f2e9;
-      color: #14583e; padding: .25rem .7rem; font-weight: 800;
+    [data-testid="stMetric"] {
+      padding: .8rem 1rem; border: 1px solid var(--line); border-radius: 16px;
+      background: linear-gradient(145deg, #fff 0%, #f5f1ff 100%);
+      box-shadow: 0 5px 18px rgba(48, 43, 100, .05);
     }
-    .score-medium { background: #fff1c9; color: #71520b; }
-    .score-high { background: #fbe2dc; color: #873c2b; }
+    [data-testid="stMetricLabel"] { color: var(--muted); }
+    [data-testid="stMetricValue"] { color: var(--ink); }
+    div[data-testid="stVerticalBlockBorderWrapper"] {
+      border-color: var(--line); border-radius: 18px; background: rgba(255, 255, 255, .9);
+    }
+    .score {
+      display: inline-block; border-radius: 99px; background: #dff7f1;
+      color: #126351; padding: .28rem .72rem; font-weight: 800;
+    }
+    .score-medium { background: #fff0c7; color: #79530a; }
+    .score-high { background: #ffe0e5; color: #932d4a; }
     .status {
       display: inline-block; border-radius: 99px; padding: .2rem .65rem;
       font-size: .8rem; font-weight: 750;
     }
-    .status-active { background: #e5f2e9; color: #14583e; }
-    .status-resolved { background: #e9edf0; color: #465660; }
+    .status-active { background: #e1f6ec; color: #176444; }
+    .status-resolved { background: #edf0f7; color: #515b75; }
     .source-demo {
       display: inline-block; border-radius: 99px; padding: .2rem .65rem;
-      background: #fff1c9; color: #71520b; font-size: .8rem; font-weight: 750;
+      background: #fff0c7; color: #79530a; font-size: .8rem; font-weight: 750;
     }
     .source-gemini {
       display: inline-block; border-radius: 99px; padding: .2rem .65rem;
-      background: #e5f2e9; color: #14583e; font-size: .8rem; font-weight: 750;
+      background: #eee8ff; color: #5538b7; font-size: .8rem; font-weight: 750;
     }
     .source-local {
       display: inline-block; border-radius: 99px; padding: .2rem .65rem;
-      background: #e7edfa; color: #324b7a; font-size: .8rem; font-weight: 750;
+      background: #e4f3ff; color: #23577c; font-size: .8rem; font-weight: 750;
     }
     .report-meta { color: var(--muted); font-size: .88rem; }
     .muted-note { color: var(--muted); font-size: .86rem; }
     div[data-testid="stTabs"] button { font-weight: 700; }
+    div[data-testid="stTabs"] button[aria-selected="true"] {
+      color: var(--violet); border-bottom-color: var(--violet);
+    }
     div[data-testid="stForm"] {
-      padding: 1.2rem; border: 1px solid var(--line);
-      border-radius: 16px; background: white;
+      padding: 1.3rem; border: 1px solid var(--line);
+      border-radius: 18px; background: rgba(255, 255, 255, .94);
+      box-shadow: 0 8px 26px rgba(48, 43, 100, .06);
+    }
+    .stButton button[kind="primary"] {
+      background: linear-gradient(100deg, #6344d2, #a34fcd);
+      border-color: #6344d2; color: white; font-weight: 750;
+    }
+    .stButton button[kind="primary"]:hover {
+      background: var(--violet-dark); border-color: var(--violet-dark); color: white;
+    }
+    [data-testid="stExpander"] {
+      border-color: #ddd5f4; border-radius: 14px; background: rgba(255, 255, 255, .78);
+    }
+    .volunteer-card {
+      border-color: #dcd5f2;
+      background: linear-gradient(130deg, #fff 0%, #f7f2ff 100%);
     }
     </style>
     """,
@@ -199,7 +237,7 @@ def render_assistance(
             if candidate is None:
                 continue
             st.text(
-                f"{candidate.category} · {candidate.location} · "
+                f"{candidate.category} · {candidate.location} · {candidate.status} · "
                 f"{match.similarity_score}% similarity signal — {match.rationale}"
             )
     else:
@@ -288,6 +326,11 @@ st.markdown(
       <div class="hero-kicker">Community response desk</div>
       <h1>Sahyog AI</h1>
       <p>Turn urgent local reports into clearer next steps for relief teams.</p>
+      <div class="feature-pills">
+        <span class="feature-pill">🌐 Report translation</span>
+        <span class="feature-pill">🔎 Possible duplicates</span>
+        <span class="feature-pill">🤝 Sample resource suggestions</span>
+      </div>
     </div>
     <div class="notice"><strong>Safety:</strong> This demo is not an emergency service.
     AI assessments and local rule estimates are informational only, not validated triage
@@ -591,17 +634,12 @@ with operations_tab:
     with volunteer_column:
         st.markdown("#### Volunteer status")
         st.caption("Illustrative sample data only · not connected to real volunteers")
-        volunteer_samples = [
-            {"Volunteer": "Sample responder A", "Status": "Available (sample)"},
-            {"Volunteer": "Sample responder B", "Status": "Preparing supplies (sample)"},
-            {"Volunteer": "Sample responder C", "Status": "Unavailable (sample)"},
-        ]
-        for volunteer in volunteer_samples:
+        for volunteer in SAMPLE_VOLUNTEERS:
             st.markdown(
                 f"""
                 <div class="volunteer-card">
-                  <strong>{escape(volunteer["Volunteer"])}</strong><br>
-                  <span class="muted-note">{escape(volunteer["Status"])}</span>
+                  <strong>{escape(volunteer.name)}</strong><br>
+                  <span class="muted-note">Sample status · availability unverified; not assigned</span>
                 </div>
                 """,
                 unsafe_allow_html=True,

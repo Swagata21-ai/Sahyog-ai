@@ -127,6 +127,7 @@ def _candidate_data(candidates: tuple[SampleCandidate, ...]) -> list[dict[str, o
 def _validate_candidate_ids(
     result: OperationsAssistancePayload,
     report_candidates: list[EmergencyReport],
+    report_category: str,
 ) -> None:
     allowed_report_ids = {candidate.id for candidate in report_candidates}
     returned_report_ids = [match.report_id for match in result.duplicate_matches]
@@ -143,11 +144,15 @@ def _validate_candidate_ids(
         (result.volunteer_suggestions, SAMPLE_VOLUNTEERS, "volunteer"),
         (result.supply_suggestions, SAMPLE_SUPPLIES, "supply"),
     ):
-        allowed_ids = {candidate.id for candidate in candidates}
+        eligible_candidates = {
+            candidate.id: candidate
+            for candidate in candidates
+            if report_category in candidate.categories
+        }
         candidate_ids = [suggestion.candidate_id for suggestion in suggestions]
-        if any(candidate_id not in allowed_ids for candidate_id in candidate_ids):
+        if any(candidate_id not in eligible_candidates for candidate_id in candidate_ids):
             raise OperationsAssistError(
-                f"Gemini suggested an unknown sample {label}. Please retry."
+                f"Gemini suggested an unknown or unrelated sample {label}. Please retry."
             )
         if len(candidate_ids) != len(set(candidate_ids)):
             raise OperationsAssistError(
@@ -160,6 +165,11 @@ def analyze_with_gemini(
     comparison_reports: list[EmergencyReport],
     target_language: str,
 ) -> OperationsAssistance:
+    if target_language not in TARGET_LANGUAGES:
+        raise OperationsAssistError(
+            "Choose a supported target language before requesting translation."
+        )
+
     load_dotenv()
     api_key = os.getenv("GEMINI_API_KEY", "").strip()
     if not api_key:
@@ -235,7 +245,7 @@ def analyze_with_gemini(
             "Gemini returned helper results that could not be validated. Please retry."
         ) from exc
 
-    _validate_candidate_ids(payload, safe_comparisons)
+    _validate_candidate_ids(payload, safe_comparisons, report.category)
     return OperationsAssistance(
         source="Gemini",
         target_language=target_language,
@@ -277,7 +287,7 @@ def local_suggestions(
             duplicate_matches.append(
                 DuplicateSuggestion(
                     report_id=candidate.id,
-                    similarity_score=round(100 * (0.5 + min(overlap, 0.5))),
+                    similarity_score=round(100 * overlap),
                     rationale=(
                         "Local rule: same category and location with "
                         f"{round(overlap * 100)}% description-word overlap; verify manually."
