@@ -14,7 +14,7 @@ Gemini turns a citizen's urgent local report into a severity score and a step-by
 Citizens and victims who need immediate help or essentials such as food, clean water, medical aid, or shelter; and local NGO teams, volunteers, and rescue coordinators organizing a response.
 
 ## The Core Loop
-A citizen submits a location, emergency category, and description. The app assesses urgency and recommends next steps; responders review the report on an operations dashboard and track whether it is active or resolved.
+A citizen submits a location, emergency category, and description. With Gemini configured, the app returns its urgency assessment and next steps; without a key, a clearly labeled local rule-based estimate keeps the demo form usable. Responders review the report and its assessment source on the operations dashboard and track whether it is active or resolved.
 
 ## Inspiration & Identity
 Fast, clear, and practical in an emergency context. The learner chose Python, Streamlit, and Google Gemini for a rapid interactive proof of concept. Specific visual references are not established.
@@ -31,6 +31,7 @@ In a short demo, submit a local emergency report and see Gemini return a severit
 - A relief operations dashboard showing reports as active or resolved and volunteer status.
 - A demonstrable coordination flow connecting a report and its AI assessment to the operations view.
 - An explicitly labeled sample-data path to explore dashboard behavior without an API key; sample results must not be presented as Gemini output.
+- A transparent local rule-based estimate when Gemini is not configured, labeled as non-AI and not validated for real emergency triage.
 
 ## Later
 - Real-time coordination and operational deployment for actual emergencies.

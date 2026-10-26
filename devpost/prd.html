@@ -85,11 +85,11 @@
     <section aria-labelledby="screens-title">
       <h2 id="screens-title">Surfaces & experience</h2>
       <div class="layout">
-        <article class="card"><h3>Emergency report</h3><p>One form collects location, Medical/Food/Water/Shelter category, and a crisis description. Missing required details get a clear prompt; no report is created until complete.</p></article>
+        <article class="card"><h3>Emergency report</h3><p>One form collects location, Medical/Food/Water/Shelter category, and a crisis description. Gemini is used when configured; otherwise a transparent local rule estimate is labeled non-AI. Missing required details get a clear prompt.</p></article>
         <article class="card"><h3>Operations dashboard</h3><p>Reports show category, location, description, assessment source, urgency, recommendation, and status. Responders can focus on active or resolved reports and change a report's status. Sample cases can be loaded without a key and are never shown as Gemini output.</p></article>
         <article class="card"><h3>Look and feel</h3><p>Fast, clear, and practical for an emergency context. Make status and urgency easy to distinguish. No specific font or visual reference was provided.</p></article>
         <article class="card"><h3>Volunteer status</h3><p>Show a simple volunteer-status view. Do not imply volunteers are verified, available, or assigned; full matching is outside this proof of concept.</p></article>
-        <article class="card safety wide"><h3>Important safety boundary</h3><p>AI output is informational prioritization support—not authoritative medical, rescue, or dispatch instruction. This demo is not an emergency service. Anyone facing immediate danger should contact local emergency services.</p></article>
+        <article class="card safety wide"><h3>Important safety boundary</h3><p>AI output and local rule estimates are informational only—not validated triage or authoritative medical, rescue, or dispatch instruction. This demo is not an emergency service. Anyone facing immediate danger should contact local emergency services.</p></article>
       </div>
     </section>
 
@@ -98,12 +98,14 @@
       <details open>
         <summary>Submit a report and receive AI assessment</summary>
         <div class="detail-body">
-          <p>On valid submission, request Gemini urgency scoring and a step-by-step dispatch recommendation. Show the result with the report; do not fabricate successful AI output.</p>
+          <p>On valid submission, use Gemini when configured or transparent local rules without a key. Show the estimate and coordination steps with their source; never present local rules as AI.</p>
           <ul class="criteria">
             <li>A valid report receives a Gemini-generated score and recommendation.</li>
+            <li>Without a key, a report receives a clearly labeled local-rules estimate and rationale.</li>
             <li>The user can identify the urgency and recommendation after submission.</li>
             <li>Missing input is explained and does not create a report.</li>
             <li>Gemini failure is visible, offers retry, and is not shown as a successful assessment.</li>
+            <li>After a Gemini failure, local rules are used only if the user explicitly chooses that alternative.</li>
           </ul>
         </div>
       </details>
@@ -127,7 +129,7 @@
             <li>Show a clear empty state before the first report.</li>
             <li>Indicate when Gemini analysis is in progress.</li>
             <li>On unusable or failed AI output, explain the failure and provide retry.</li>
-            <li>Without a key, users can load a separate sample dataset; real report submission still explains that Gemini needs a key.</li>
+            <li>Without a key, report submission uses local rules, labeled non-AI and not validated triage; users can also load a separate sample dataset.</li>
             <li>The proof demonstrates reports in the current app run; no durable storage or live multi-user synchronization is promised.</li>
           </ul>
         </div>

@@ -36,7 +36,8 @@ Build mode: fast
 
 ## Final Review
 
-- [ ] Add a no-key dashboard demo with explicitly labeled sample assessments; verify it never presents samples as Gemini output.
+- [x] Add a no-key dashboard demo with explicitly labeled sample assessments; verify it never presents samples as Gemini output.
+- [x] Add a no-key local-rules report path and explicit Gemini-failure fallback; verify all results identify their source and remain clearly non-AI when rule-based.
 - [ ] Final review complete — feedback resolved and learner confirms ready to ship
 
 ## Code Tour and App Map
@@ -55,3 +56,5 @@ Activity mode: [live app and editor, explicit static fallback, focused alternati
 
 - Live Gemini output was not verified in this environment because no `GEMINI_API_KEY` is configured; tests cover request wiring, response validation, and visible missing-key/transport failures. A real assessment still needs a locally configured key.
 - Added a no-key dashboard preview so hackathon reviewers can explore operations controls without credentials; sample results remain explicitly non-AI and real Gemini submissions still require a key.
+- Added a no-key report submission path using transparent local rules at the learner's request; Gemini remains the live AI path when configured, and fallback after a request failure requires an explicit choice.
+- Verified local baseline and keyword scoring, missing-field handling, report submission/source labels, explicit local fallback and retry after mocked Gemini failure, plus compileall and all 17 unit tests. Live Gemini output still requires a locally configured key.

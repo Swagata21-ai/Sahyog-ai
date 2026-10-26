@@ -1,10 +1,15 @@
-from html import escape
 import logging
+from html import escape
 
 import streamlit as st
 
-from sahyog_ai.gemini import GeminiAssessmentError, assess_report
-from sahyog_ai.models import Assessment, EmergencyReport
+from sahyog_ai.gemini import (
+    GeminiAssessmentError,
+    assess_report,
+    has_gemini_api_key,
+)
+from sahyog_ai.local_triage import assess_with_local_rules
+from sahyog_ai.models import Assessment, AssessmentSource, EmergencyReport
 
 logging.basicConfig(level=logging.INFO)
 
@@ -72,6 +77,10 @@ st.markdown(
       display: inline-block; border-radius: 99px; padding: .2rem .65rem;
       background: #e5f2e9; color: #14583e; font-size: .8rem; font-weight: 750;
     }
+    .source-local {
+      display: inline-block; border-radius: 99px; padding: .2rem .65rem;
+      background: #e7edfa; color: #324b7a; font-size: .8rem; font-weight: 750;
+    }
     .report-meta { color: var(--muted); font-size: .88rem; }
     .muted-note { color: var(--muted); font-size: .86rem; }
     div[data-testid="stTabs"] button { font-weight: 700; }
@@ -86,6 +95,38 @@ st.markdown(
 
 if "reports" not in st.session_state:
     st.session_state.reports = []
+if "pending_report" not in st.session_state:
+    st.session_state.pending_report = None
+if "pending_gemini_error" not in st.session_state:
+    st.session_state.pending_gemini_error = ""
+
+
+def save_report(
+    location: str,
+    category: str,
+    description: str,
+    assessment: Assessment,
+    source: AssessmentSource,
+) -> EmergencyReport:
+    report = EmergencyReport(
+        location=location,
+        category=category,
+        description=description,
+        assessment=assessment,
+        assessment_source=source,
+    )
+    st.session_state.reports.insert(0, report)
+    return report
+
+
+def render_new_assessment(report: EmergencyReport) -> None:
+    st.success(f"Report added to Operations · {report.assessment_source}")
+    st.markdown(
+        f"**{report.assessment_source} assessment · urgency {report.assessment.severity_score}/5**"
+    )
+    st.caption(report.assessment.urgency_rationale)
+    for index, step in enumerate(report.assessment.action_steps, start=1):
+        st.text(f"{index}. {step}")
 
 
 def make_demo_reports() -> list[EmergencyReport]:
@@ -150,8 +191,8 @@ st.markdown(
       <p>Turn urgent local reports into clearer next steps for relief teams.</p>
     </div>
     <div class="notice"><strong>Safety:</strong> This demo is not an emergency service.
-    AI assessments are informational only. If someone is in immediate danger, contact
-    local emergency services.</div>
+    AI assessments and local rule estimates are informational only, not validated triage
+    or dispatch. If someone is in immediate danger, contact local emergency services.</div>
     """,
     unsafe_allow_html=True,
 )
@@ -160,33 +201,44 @@ report_tab, operations_tab = st.tabs(["＋  Submit a report", "▤  Operations"]
 
 with report_tab:
     st.subheader("Tell us what is happening")
-    st.caption(
-        "Share the essentials so the response team can assess the need. "
-        "To explore the dashboard without a Gemini key, open Operations and load sample reports."
-    )
+    key_configured = has_gemini_api_key()
+    st.caption("Share the essentials so the response team can assess the need.")
+    if key_configured:
+        st.caption("Gemini is configured for live AI assessments.")
+    else:
+        st.info(
+            "No Gemini key configured. Submissions use transparent local rules, "
+            "labeled non-AI. The keyword rules can miss or misread context and are not "
+            "validated triage; no key is needed to try the form."
+        )
     with st.form("emergency_report", clear_on_submit=False):
         location = st.text_input(
             "Location",
             placeholder="Neighborhood, landmark, or address",
             max_chars=160,
+            key="report_location",
         )
         category = st.selectbox(
             "What is needed?",
             ["Medical", "Food", "Water", "Shelter"],
+            key="report_category",
         )
         description = st.text_area(
             "Describe the emergency",
             placeholder="What happened, who needs help, and what support is needed?",
             max_chars=1200,
             height=130,
+            key="report_description",
         )
         submitted = st.form_submit_button(
-            "Assess report with Gemini",
+            "Assess report with Gemini" if key_configured else "Assess with local rules",
             type="primary",
             use_container_width=True,
         )
 
     if submitted:
+        st.session_state.pending_report = None
+        st.session_state.pending_gemini_error = ""
         missing_fields = [
             label
             for label, value in (
@@ -197,6 +249,15 @@ with report_tab:
         ]
         if missing_fields:
             st.error("Please add " + " and ".join(missing_fields) + " before submitting.")
+        elif not key_configured:
+            report = save_report(
+                location=location.strip(),
+                category=category,
+                description=description.strip(),
+                assessment=assess_with_local_rules(category, description.strip()),
+                source="Local rules",
+            )
+            render_new_assessment(report)
         else:
             try:
                 with st.spinner("Gemini is reviewing the report…"):
@@ -206,17 +267,56 @@ with report_tab:
                         description=description.strip(),
                     )
             except GeminiAssessmentError as exc:
-                st.error(str(exc))
+                st.session_state.pending_report = {
+                    "location": location.strip(),
+                    "category": category,
+                    "description": description.strip(),
+                }
+                st.session_state.pending_gemini_error = str(exc)
             else:
-                report = EmergencyReport(
+                report = save_report(
                     location=location.strip(),
                     category=category,
                     description=description.strip(),
                     assessment=assessment,
+                    source="Gemini",
                 )
-                st.session_state.reports.insert(0, report)
-                st.success("Assessment complete. The report is now in Operations.")
-                st.rerun()
+                render_new_assessment(report)
+
+    if st.session_state.pending_report:
+        pending = st.session_state.pending_report
+        retry_column, local_column = st.columns(2)
+        with retry_column:
+            if st.button("Retry Gemini assessment", use_container_width=True):
+                try:
+                    with st.spinner("Retrying Gemini assessment…"):
+                        assessment = assess_report(**pending)
+                except GeminiAssessmentError as exc:
+                    st.session_state.pending_gemini_error = str(exc)
+                else:
+                    report = save_report(
+                        **pending,
+                        assessment=assessment,
+                        source="Gemini",
+                    )
+                    st.session_state.pending_report = None
+                    st.session_state.pending_gemini_error = ""
+                    render_new_assessment(report)
+        with local_column:
+            if st.button("Use local rules instead", use_container_width=True):
+                report = save_report(
+                    **pending,
+                    assessment=assess_with_local_rules(
+                        pending["category"],
+                        pending["description"],
+                    ),
+                    source="Local rules",
+                )
+                st.session_state.pending_report = None
+                st.session_state.pending_gemini_error = ""
+                render_new_assessment(report)
+        if st.session_state.pending_report:
+            st.error(st.session_state.pending_gemini_error)
 
 with operations_tab:
     reports = st.session_state.reports
@@ -284,21 +384,26 @@ with operations_tab:
             score = report.assessment.severity_score
             score_class = "score-high" if score >= 4 else "score-medium" if score == 3 else ""
             status_class = "status-active" if report.status == "Active" else "status-resolved"
-            is_demo = report.assessment_source == "Demo example"
-            source_class = "source-demo" if is_demo else "source-gemini"
-            assessment_label = (
-                "Demo example · not Gemini" if is_demo else "Gemini assessment"
-            )
-            rationale_label = (
-                "Illustrative example rationale · not AI"
-                if is_demo
-                else "AI urgency rationale"
-            )
-            steps_label = (
-                "Example coordination steps · not AI"
-                if is_demo
-                else "Recommended coordination steps"
-            )
+            source_class, assessment_label, rationale_label, steps_label = {
+                "Gemini": (
+                    "source-gemini",
+                    "Gemini assessment",
+                    "AI urgency rationale",
+                    "Recommended coordination steps",
+                ),
+                "Local rules": (
+                    "source-local",
+                    "Local rules · not AI",
+                    "Local rule explanation · not AI",
+                    "Local rule-based coordination steps · not AI",
+                ),
+                "Demo example": (
+                    "source-demo",
+                    "Demo example · not Gemini",
+                    "Illustrative example rationale · not AI",
+                    "Example coordination steps · not AI",
+                ),
+            }[report.assessment_source]
 
             with st.container(border=True):
                 heading_column, action_column = st.columns([3, 1])

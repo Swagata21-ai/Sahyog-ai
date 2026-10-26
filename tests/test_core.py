@@ -9,6 +9,7 @@ from pydantic import ValidationError
 from streamlit.testing.v1 import AppTest
 
 from sahyog_ai.gemini import GeminiAssessmentError, assess_report, parse_assessment
+from sahyog_ai.local_triage import assess_with_local_rules
 from sahyog_ai.models import Assessment, EmergencyReport
 
 
@@ -58,6 +59,29 @@ class AssessmentTests(unittest.TestCase):
         )
 
         self.assertEqual(report.status, "Active")
+
+    def test_local_rules_use_category_baseline_and_disclose_source(self):
+        assessment = assess_with_local_rules("Food", "A community center needs supplies.")
+
+        self.assertEqual(assessment.severity_score, 1)
+        self.assertIn("category baseline is 1/5", assessment.urgency_rationale)
+        self.assertIn("not AI", assessment.urgency_rationale)
+
+    def test_local_rules_raise_score_for_matching_keyword(self):
+        assessment = assess_with_local_rules("Water", "Floodwater is entering homes.")
+
+        self.assertEqual(assessment.severity_score, 3)
+        self.assertIn("flood", assessment.urgency_rationale)
+        self.assertIn("category baseline 2/5", assessment.urgency_rationale)
+
+    def test_local_rules_high_priority_keyword_caps_at_five(self):
+        assessment = assess_with_local_rules("Shelter", "Residents are trapped.")
+
+        self.assertEqual(assessment.severity_score, 5)
+        self.assertIn("trapped", assessment.urgency_rationale)
+        self.assertTrue(
+            any("local emergency services" in step for step in assessment.action_steps)
+        )
 
     def test_missing_api_key_does_not_create_an_assessment(self):
         with patch.dict(os.environ, {"GEMINI_API_KEY": ""}):
@@ -136,6 +160,124 @@ class AssessmentTests(unittest.TestCase):
 
         next(button for button in app.button if button.label == "Clear sample reports").click().run()
         self.assertEqual(app.session_state["reports"], [])
+
+    def test_no_key_report_submission_saves_a_labeled_local_assessment(self):
+        app = AppTest.from_file(Path(__file__).resolve().parents[1] / "app.py")
+        with patch.dict(os.environ, {"GEMINI_API_KEY": ""}):
+            app.run()
+            app.text_input(key="report_location").set_value("North Block")
+            app.selectbox(key="report_category").select("Water")
+            app.text_area(key="report_description").set_value(
+                "Floodwater is entering several homes."
+            )
+            next(
+                button
+                for button in app.button
+                if button.label == "Assess with local rules"
+            ).click().run()
+
+        self.assertFalse(app.exception)
+        self.assertEqual(len(app.session_state["reports"]), 1)
+        report = app.session_state["reports"][0]
+        self.assertEqual(report.assessment_source, "Local rules")
+        self.assertIn("not AI", report.assessment.urgency_rationale)
+        self.assertTrue(
+            any("Local rules assessment · urgency 3/5" in item.value for item in app.markdown)
+        )
+        self.assertTrue(
+            any("Local rules · not AI" in item.value for item in app.markdown)
+        )
+
+    def test_gemini_failure_requires_explicit_local_rules_choice(self):
+        client = Mock()
+        client.interactions.create.side_effect = httpx.ConnectError("offline")
+        app = AppTest.from_file(Path(__file__).resolve().parents[1] / "app.py")
+        with (
+            patch.dict(os.environ, {"GEMINI_API_KEY": "test-key"}),
+            patch("sahyog_ai.gemini.genai.Client", return_value=client),
+        ):
+            app.run()
+            app.text_input(key="report_location").set_value("North Block")
+            app.selectbox(key="report_category").select("Water")
+            app.text_area(key="report_description").set_value(
+                "Floodwater is entering several homes."
+            )
+            next(
+                button
+                for button in app.button
+                if button.label == "Assess report with Gemini"
+            ).click().run()
+
+            self.assertEqual(app.session_state["reports"], [])
+            self.assertIsNotNone(app.session_state["pending_report"])
+            self.assertTrue(
+                any(button.label == "Use local rules instead" for button in app.button)
+            )
+            next(
+                button
+                for button in app.button
+                if button.label == "Use local rules instead"
+            ).click().run()
+
+        self.assertFalse(app.exception)
+        self.assertEqual(len(app.session_state["reports"]), 1)
+        self.assertEqual(app.session_state["reports"][0].assessment_source, "Local rules")
+        self.assertIsNone(app.session_state["pending_report"])
+
+    def test_gemini_failure_can_be_retried_without_using_local_rules(self):
+        client = Mock()
+        client.interactions.create.side_effect = [
+            httpx.ConnectError("offline"),
+            SimpleNamespace(
+                output_text=(
+                    '{"severity_score": 3, "urgency_rationale": "Flooding reported.", '
+                    '"action_steps": ["Contact local responders."]}'
+                )
+            ),
+        ]
+        app = AppTest.from_file(Path(__file__).resolve().parents[1] / "app.py")
+        with (
+            patch.dict(os.environ, {"GEMINI_API_KEY": "test-key"}),
+            patch("sahyog_ai.gemini.genai.Client", return_value=client),
+        ):
+            app.run()
+            app.text_input(key="report_location").set_value("North Block")
+            app.selectbox(key="report_category").select("Water")
+            app.text_area(key="report_description").set_value(
+                "Floodwater is entering several homes."
+            )
+            next(
+                button
+                for button in app.button
+                if button.label == "Assess report with Gemini"
+            ).click().run()
+            self.assertEqual(app.session_state["reports"], [])
+            next(
+                button
+                for button in app.button
+                if button.label == "Retry Gemini assessment"
+            ).click().run()
+
+        self.assertFalse(app.exception)
+        self.assertEqual(len(app.session_state["reports"]), 1)
+        self.assertEqual(app.session_state["reports"][0].assessment_source, "Gemini")
+        self.assertIsNone(app.session_state["pending_report"])
+
+    def test_missing_report_fields_do_not_create_a_report(self):
+        app = AppTest.from_file(Path(__file__).resolve().parents[1] / "app.py")
+        with patch.dict(os.environ, {"GEMINI_API_KEY": ""}):
+            app.run()
+            next(
+                button
+                for button in app.button
+                if button.label == "Assess with local rules"
+            ).click().run()
+
+        self.assertFalse(app.exception)
+        self.assertEqual(app.session_state["reports"], [])
+        self.assertTrue(
+            any("Please add location and description" in item.value for item in app.error)
+        )
 
 
 if __name__ == "__main__":

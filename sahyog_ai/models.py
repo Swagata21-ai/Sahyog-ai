@@ -4,6 +4,8 @@ from uuid import uuid4
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
+AssessmentSource = Literal["Gemini", "Local rules", "Demo example"]
+
 
 ActionStep = Annotated[
     str,
@@ -28,6 +30,6 @@ class EmergencyReport(BaseModel):
     category: Literal["Medical", "Food", "Water", "Shelter"]
     description: str
     assessment: Assessment
-    assessment_source: Literal["Gemini", "Demo example"] = "Gemini"
+    assessment_source: AssessmentSource = "Gemini"
     status: Literal["Active", "Resolved"] = "Active"
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

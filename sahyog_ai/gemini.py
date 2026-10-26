@@ -16,6 +16,11 @@ class GeminiAssessmentError(Exception):
     """Raised when Gemini cannot return a usable report assessment."""
 
 
+def has_gemini_api_key() -> bool:
+    load_dotenv()
+    return bool(os.getenv("GEMINI_API_KEY", "").strip())
+
+
 def parse_assessment(response_text: str) -> Assessment:
     try:
         return Assessment.model_validate_json(response_text)

@@ -59,7 +59,7 @@
     <header>
       <div class="eyebrow">Technical blueprint · Sahyog AI</div>
       <h1>Small pieces, one real flow</h1>
-      <p class="lede">A local Streamlit app connects a real Gemini assessment to a relief-operations dashboard—without accounts, databases, or fake AI results.</p>
+      <p class="lede">A local Streamlit app connects Gemini when configured—or transparent local rules without a key—to a relief-operations dashboard.</p>
       <span class="badge">Spec approved</span>
     </header>
 
@@ -68,7 +68,7 @@
       <div class="flow">
         <svg viewBox="0 0 940 235" role="img" aria-labelledby="diagram-title diagram-description">
           <title id="diagram-title">Sahyog AI technical data flow</title>
-          <desc id="diagram-description">A report form in Streamlit sends details to the Gemini service. Gemini returns structured data, which Pydantic validates before the report is stored in session memory and shown in the dashboard.</desc>
+          <desc id="diagram-description">A report form uses Gemini when configured or local rules without a key. Pydantic validates the assessment, its source is recorded, and the report appears in the dashboard.</desc>
           <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#1d6b50"></path></marker></defs>
           <rect x="10" y="52" width="170" height="126" rx="16" fill="#fffefa" stroke="#dce2d8" stroke-width="2"></rect>
           <text x="30" y="89" fill="#10251f" font-size="17" font-weight="700">Streamlit form</text>
@@ -76,9 +76,9 @@
           <text x="30" y="143" fill="#53645d" font-size="14">Crisis description</text>
           <path d="M190 115H237" stroke="#1d6b50" stroke-width="3" marker-end="url(#arrow)"></path>
           <rect x="250" y="52" width="188" height="126" rx="16" fill="#1d6b50"></rect>
-          <text x="270" y="89" fill="#fffefa" font-size="17" font-weight="700">Gemini service</text>
-          <text x="270" y="119" fill="#e2eee5" font-size="14">JSON score + steps</text>
-          <text x="270" y="143" fill="#e2eee5" font-size="14">API key stays local</text>
+          <text x="270" y="89" fill="#fffefa" font-size="17" font-weight="700">Assessment</text>
+          <text x="270" y="119" fill="#e2eee5" font-size="14">Gemini with key</text>
+          <text x="270" y="143" fill="#e2eee5" font-size="14">Local rules without</text>
           <path d="M448 115H495" stroke="#1d6b50" stroke-width="3" marker-end="url(#arrow)"></path>
           <rect x="508" y="52" width="188" height="126" rx="16" fill="#fffefa" stroke="#dce2d8" stroke-width="2"></rect>
           <text x="528" y="89" fill="#10251f" font-size="17" font-weight="700">Validate + store</text>
@@ -98,11 +98,12 @@
       <h2 id="journey-title">The pieces</h2>
       <div class="journey">
         <article class="card"><h3>Report form · <code>app.py</code></h3><p>Collects and validates user input, shows the safety boundary, and starts assessment.</p></article>
-        <article class="card"><h3>Gemini · <code>sahyog_ai/gemini.py</code></h3><p>Sends the report to the model with a structured output request and explicit error handling.</p></article>
-        <article class="card"><h3>Data checks · <code>sahyog_ai/models.py</code></h3><p>Checks the score and action steps before any AI result is treated as a report assessment.</p></article>
+        <article class="card"><h3>Gemini · <code>sahyog_ai/gemini.py</code></h3><p>When configured, sends the report to the model with a structured output request and explicit error handling.</p></article>
+        <article class="card"><h3>Local rules · <code>sahyog_ai/local_triage.py</code></h3><p>When no key is configured, calculates an explicitly labeled code-based estimate; never presents it as AI.</p></article>
+        <article class="card"><h3>Data checks · <code>sahyog_ai/models.py</code></h3><p>Checks score and action steps and records whether a result came from Gemini, local rules, or sample data.</p></article>
         <article class="card"><h3>Operations · <code>app.py</code></h3><p>Shows reports, filters active/resolved items, updates statuses, and explains the empty state. A no-key preview loads separate sample records that are never presented as Gemini output.</p></article>
         <article class="card"><h3>Volunteer sample · <code>app.py</code></h3><p>Shows example statuses with clear labels; does not suggest real availability or dispatch.</p></article>
-        <article class="card safety"><h3>Safety</h3><p>AI output is informational only; the app is not an emergency service and advises contacting local emergency services for immediate danger.</p></article>
+        <article class="card safety"><h3>Safety</h3><p>AI output and local rule estimates are informational only, not validated triage; the app is not an emergency service and advises contacting local emergency services for immediate danger.</p></article>
       </div>
     </section>
 
@@ -115,6 +116,7 @@
 ├── sahyog_ai/
 │   ├── __init__.py
 │   ├── gemini.py              # Gemini API request + failure handling
+│   ├── local_triage.py        # No-key category/keyword estimate
 │   └── models.py              # Validated assessment + report source
 ├── requirements.txt          # Streamlit, google-genai, Pydantic
 ├── .env.example              # Secret-free configuration example
@@ -128,7 +130,7 @@
       </details>
       <details class="detail">
         <summary>Data, costs, and limits</summary>
-        <div class="body"><p>Reports stay in the Streamlit session and disappear when the app restarts. Real Gemini assessment requires internet and a key; account quotas or charges can apply. Without a key, load clearly labeled illustrative sample records to explore the dashboard—these are not AI output. Check <a href="https://ai.google.dev/gemini-api/docs/pricing">current pricing</a> and <a href="https://ai.google.dev/gemini-api/docs/rate-limits">rate limits</a>. No database or hosting service is used.</p></div>
+        <div class="body"><p>Reports stay in the Streamlit session and disappear when the app restarts. A key enables live Gemini output; without one, the form uses clearly labeled local rules, not AI or validated triage. Sample records are separately labeled examples. Check <a href="https://ai.google.dev/gemini-api/docs/pricing">current pricing</a> and <a href="https://ai.google.dev/gemini-api/docs/rate-limits">rate limits</a>. No database or hosting service is used.</p></div>
       </details>
     </section>
 
