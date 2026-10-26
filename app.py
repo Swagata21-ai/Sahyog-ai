@@ -56,7 +56,16 @@ st.markdown(
       display: inline-block; border-radius: 99px; background: #e5f2e9;
       color: #14583e; padding: .25rem .7rem; font-weight: 800;
     }
+    .score-medium { background: #fff1c9; color: #71520b; }
+    .score-high { background: #fbe2dc; color: #873c2b; }
+    .status {
+      display: inline-block; border-radius: 99px; padding: .2rem .65rem;
+      font-size: .8rem; font-weight: 750;
+    }
+    .status-active { background: #e5f2e9; color: #14583e; }
+    .status-resolved { background: #e9edf0; color: #465660; }
     .report-meta { color: var(--muted); font-size: .88rem; }
+    .muted-note { color: var(--muted); font-size: .86rem; }
     div[data-testid="stTabs"] button { font-weight: 700; }
     div[data-testid="stForm"] {
       padding: 1.2rem; border: 1px solid var(--line);
@@ -145,22 +154,95 @@ with report_tab:
 
 with operations_tab:
     reports = st.session_state.reports
+    active_count = sum(report.status == "Active" for report in reports)
+    resolved_count = len(reports) - active_count
+    urgent_count = sum(report.assessment.severity_score >= 4 for report in reports)
+
     st.subheader("Relief operations")
     st.caption("Reports submitted during this app session.")
-    if not reports:
-        st.info("No assessed reports yet. Submit an emergency report to start the response queue.")
-    for report in reports:
-        st.markdown(
-            f"""
-            <div class="report-card">
-              <div class="report-meta">{escape(report.category)} · {escape(report.location)} · {escape(report.status)}</div>
-              <p>{escape(report.description)}</p>
-              <span class="score">Urgency {report.assessment.severity_score}/5</span>
-              <p><strong>Assessment:</strong> {escape(report.assessment.urgency_rationale)}</p>
-            </div>
-            """,
-            unsafe_allow_html=True,
+
+    metric_columns = st.columns(3)
+    metric_columns[0].metric("Active", active_count)
+    metric_columns[1].metric("Resolved", resolved_count)
+    metric_columns[2].metric("Urgency 4–5", urgent_count)
+
+    report_column, volunteer_column = st.columns([2.2, 1], gap="large")
+
+    with report_column:
+        st.markdown("#### Response queue")
+        status_filter = st.selectbox(
+            "Show reports",
+            ["All", "Active", "Resolved"],
+            label_visibility="collapsed",
         )
-        with st.expander("Recommended coordination steps"):
-            for index, step in enumerate(report.assessment.action_steps, start=1):
-                st.write(f"{index}. {step}")
+        visible_reports = [
+            report
+            for report in reports
+            if status_filter == "All" or report.status == status_filter
+        ]
+
+        if not reports:
+            st.info("No assessed reports yet. Submit an emergency report to start the response queue.")
+        elif not visible_reports:
+            st.info(f"No {status_filter.lower()} reports right now.")
+
+        visible_reports.sort(
+            key=lambda report: (
+                report.status != "Active",
+                -report.assessment.severity_score,
+                -report.created_at.timestamp(),
+            )
+        )
+        for report in visible_reports:
+            score = report.assessment.severity_score
+            score_class = "score-high" if score >= 4 else "score-medium" if score == 3 else ""
+            status_class = "status-active" if report.status == "Active" else "status-resolved"
+
+            with st.container(border=True):
+                heading_column, action_column = st.columns([3, 1])
+                with heading_column:
+                    st.text(f"{report.category} · {report.location}")
+                    st.markdown(
+                        f'<span class="score {score_class}">Urgency {score}/5</span> '
+                        f'<span class="status {status_class}">{escape(report.status)}</span>',
+                        unsafe_allow_html=True,
+                    )
+                with action_column:
+                    button_label = (
+                        "Mark resolved" if report.status == "Active" else "Reopen report"
+                    )
+                    if st.button(
+                        button_label,
+                        key=f"status_{report.id}",
+                        use_container_width=True,
+                    ):
+                        report.status = (
+                            "Resolved" if report.status == "Active" else "Active"
+                        )
+                        st.rerun()
+
+                st.text(report.description)
+                st.markdown("**AI urgency rationale**")
+                st.text(report.assessment.urgency_rationale)
+                with st.expander("Recommended coordination steps"):
+                    for index, step in enumerate(report.assessment.action_steps, start=1):
+                        st.text(f"{index}. {step}")
+
+    with volunteer_column:
+        st.markdown("#### Volunteer status")
+        st.caption("Illustrative sample data only · not connected to real volunteers")
+        volunteer_samples = [
+            {"Volunteer": "Sample responder A", "Status": "Available (sample)"},
+            {"Volunteer": "Sample responder B", "Status": "Preparing supplies (sample)"},
+            {"Volunteer": "Sample responder C", "Status": "Unavailable (sample)"},
+        ]
+        for volunteer in volunteer_samples:
+            st.markdown(
+                f"""
+                <div class="volunteer-card">
+                  <strong>{escape(volunteer["Volunteer"])}</strong><br>
+                  <span class="muted-note">{escape(volunteer["Status"])}</span>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )

@@ -1,16 +1,25 @@
 from datetime import datetime, timezone
-from typing import Literal
+from typing import Annotated, Literal
 from uuid import uuid4
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints
+
+
+ActionStep = Annotated[
+    str,
+    StringConstraints(strip_whitespace=True, min_length=1, max_length=240),
+]
 
 
 class Assessment(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     severity_score: int = Field(ge=1, le=5)
-    urgency_rationale: str = Field(min_length=1, max_length=280)
-    action_steps: list[str] = Field(min_length=1, max_length=5)
+    urgency_rationale: Annotated[
+        str,
+        StringConstraints(strip_whitespace=True, min_length=1, max_length=280),
+    ]
+    action_steps: list[ActionStep] = Field(min_length=1, max_length=5)
 
 
 class EmergencyReport(BaseModel):

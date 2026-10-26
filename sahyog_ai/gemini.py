@@ -4,6 +4,7 @@ import os
 from dotenv import load_dotenv
 from google import genai
 from google.genai import errors
+import httpx
 from pydantic import ValidationError
 
 from sahyog_ai.models import Assessment
@@ -54,7 +55,7 @@ def assess_report(location: str, category: str, description: str) -> Assessment:
                 "schema": Assessment.model_json_schema(),
             },
         )
-    except errors.APIError as exc:
+    except (errors.APIError, httpx.HTTPError) as exc:
         logger.exception("Gemini API request failed")
         raise GeminiAssessmentError(
             "Gemini could not assess this report. Check your connection and API "

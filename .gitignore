@@ -4,3 +4,6 @@
 /devpost/learner-profile.md
 __pycache__/
 *.py[cod]
+.venv/
+venv/
+.streamlit/secrets.toml

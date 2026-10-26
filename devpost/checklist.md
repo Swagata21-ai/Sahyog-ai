@@ -9,13 +9,13 @@ Build mode: fast
 
 ## Slices
 
-- [ ] **1. Submit an emergency and see Gemini's assessment**
+- [x] **1. Submit an emergency and see Gemini's assessment**
   Becomes usable: A local Streamlit app accepts a valid emergency report, sends it to Gemini, and shows a validated urgency score and action steps alongside the report. Missing credentials or failed/invalid AI output is shown as an error, never as a fabricated success.
   Why now: This bootstraps the app while proving the unique kernel early. The real report-to-Gemini-to-screen flow surfaces API and response-shape risk before dashboard refinements.
   PRD ref: `prd.md > The Core Journey`; `prd.md > Features and Behavior > Emergency report and AI assessment`
   Spec ref: `spec.md > Stack`; `spec.md > Components > Emergency report form`; `spec.md > Components > Gemini assessment service`; `spec.md > Components > Assessment and report data`; `spec.md > Where It Runs and How Someone Tries It`
   Build: Create the Streamlit app and dependencies; add validated assessment/report types, the official Gemini structured-output call, local key configuration guidance, report submission and in-session storage, safety copy, and a visible assessment result.
-  Verify (mechanical): Run `python -m compileall -q app.py sahyog_ai`; run the built-in unit checks for valid/invalid assessment data and Gemini error handling; start Streamlit and confirm the local page responds. If no API key is configured, submit a valid report and confirm the app reports the missing key without creating a fake assessed report.
+  Verify (mechanical): Run `python -m compileall -q app.py sahyog_ai tests`; run `python -m unittest discover -s tests -v` for assessment validation, structured Gemini request wiring, and status controls; start Streamlit and confirm the local page responds. If no API key is configured, submit a valid report and confirm the app reports the missing key without creating a fake assessed report.
   Learner check: Open the local app, submit a sample emergency with your own locally configured Gemini key, and check that its urgency score and action steps appear. If you do not have a key configured yet, check that the app explains the missing key and does not invent an AI result.
   Commit: `Build Gemini emergency assessment flow`
 
@@ -25,13 +25,13 @@ Build mode: fast
   PRD ref: `prd.md > The Core Journey`; `prd.md > Features and Behavior > Relief operations dashboard`; `prd.md > States and Boundaries`
   Spec ref: `spec.md > Components > Relief operations dashboard`; `spec.md > Components > Volunteer status panel`; `spec.md > Data Model`; `spec.md > Look and Feel`
   Build: Add the complete operations layout, active/resolved filters and status updates, empty state, sample volunteer panel, and responsive visual polish following the spec.
-  Verify (mechanical): Run `python -m compileall -q app.py sahyog_ai` and the built-in unit checks; start Streamlit, exercise report submission/error handling and active/resolved transitions, and confirm the page responds without runtime errors.
+  Verify (mechanical): Run `python -m compileall -q app.py sahyog_ai tests` and `python -m unittest discover -s tests -v`; start Streamlit, exercise report submission/error handling and active/resolved transitions, and confirm the page responds without runtime errors.
   Learner check: Open the app and review an assessed report in the operations dashboard; switch it between active and resolved, inspect both views, and confirm the volunteer panel is labeled as sample data.
   Commit: `Add relief operations dashboard`
 
 ## Hands-on Checkpoints
 
-- [ ] Early usable behavior explored — after slice 1, try the report-to-Gemini flow (or missing-key message) and share any feedback that should shape the dashboard.
+- [x] Early usable behavior explored — learner observed the missing-key message; the error path was verified to save no report, and no change was requested.
 - [ ] Final kick-the-tires exploration and feedback completed — after slice 2, try the full journey and report anything broken, confusing, or worth changing.
 
 ## Final Review

@@ -27,6 +27,7 @@ PRD ref: `prd.md > The Core Journey`, `Features and Behavior > Emergency report 
 - **Python 3.10+** — the learner selected Python. The minimum supports the type syntax and SDK baseline used by the app.
 - **Streamlit** — the learner selected Streamlit for a quick interactive browser interface. Its session state holds reports only for the current app session.
 - **Google GenAI Python SDK (`google-genai`)** — calls Gemini using the official Python client and structured output. Tradeoff: the AI feature requires internet access, an API key, and may be subject to account quotas or billing.
+- **HTTPX** — recognizes transport and timeout errors from the Gemini SDK so the app can show a clear retry message.
 - **Pydantic** — validates the structured AI response before it is shown or saved into the current session.
 - **python-dotenv** — optionally loads the ignored local `.env` file for the API key and model name.
 
@@ -34,6 +35,7 @@ Documentation:
 - [Python](https://docs.python.org/3/)
 - [Streamlit documentation](https://docs.streamlit.io/)
 - [Google GenAI Python SDK](https://github.com/googleapis/python-genai)
+- [HTTPX documentation](https://www.python-httpx.org/)
 - [Gemini API quickstart](https://ai.google.dev/gemini-api/docs/get-started?lang=python)
 - [Gemini structured output](https://ai.google.dev/gemini-api/docs/structured-output?lang=python)
 - [Pydantic documentation](https://docs.pydantic.dev/latest/)
@@ -111,7 +113,7 @@ sahyog-ai/
 │   └── models.py             # Pydantic response validation and report types
 ├── tests/
 │   └── test_core.py          # Built-in unittest checks for validation and key errors
-├── requirements.txt          # Streamlit, google-genai, and Pydantic dependencies
+├── requirements.txt          # Streamlit, Gemini SDK, HTTPX, Pydantic, dotenv
 ├── .env.example              # Secret-free example of required local configuration
 ├── .gitignore                # Excludes local credentials and learner profile
 ├── README.md                 # Setup, run, safety, and demo instructions
