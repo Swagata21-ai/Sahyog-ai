@@ -1,0 +1,23 @@
+from datetime import datetime, timezone
+from typing import Literal
+from uuid import uuid4
+
+from pydantic import BaseModel, ConfigDict, Field
+
+
+class Assessment(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    severity_score: int = Field(ge=1, le=5)
+    urgency_rationale: str = Field(min_length=1, max_length=280)
+    action_steps: list[str] = Field(min_length=1, max_length=5)
+
+
+class EmergencyReport(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid4()))
+    location: str
+    category: Literal["Medical", "Food", "Water", "Shelter"]
+    description: str
+    assessment: Assessment
+    status: Literal["Active", "Resolved"] = "Active"
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

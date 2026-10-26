@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10251f">
+  <title>Sahyog AI — Technical Blueprint</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #10251f;
+      --muted: #53645d;
+      --paper: #f7f6ef;
+      --card: #fffefa;
+      --line: #dce2d8;
+      --green: #1d6b50;
+      --lime: #d8f28b;
+      --orange: #b85a38;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); }
+    main { width: min(100% - 32px, 1000px); margin: auto; padding: 42px 0 70px; }
+    .eyebrow { color: var(--green); font-size: .78rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+    h1 { margin: 12px 0; font-size: clamp(2.5rem, 7vw, 4.6rem); line-height: 1; letter-spacing: -.06em; }
+    h2 { margin: 0 0 15px; font-size: 1.55rem; letter-spacing: -.04em; }
+    h3 { margin: 0 0 8px; font-size: 1.02rem; }
+    p { color: var(--muted); line-height: 1.65; }
+    .lede { max-width: 720px; font-size: 1.12rem; }
+    .badge { display: inline-block; padding: 7px 11px; border: 1px solid var(--line); border-radius: 99px; background: var(--card); color: var(--muted); font-size: .82rem; }
+    .badge::before { display: inline-block; width: 8px; height: 8px; margin-right: 8px; border-radius: 50%; background: #d49b38; content: ""; }
+    section { margin-top: 38px; }
+    .flow { overflow-x: auto; padding: 20px; border: 1px solid var(--line); border-radius: 20px; background: #eaf0e6; }
+    .flow svg { display: block; width: 100%; min-width: 690px; height: auto; }
+    .flow p { margin: 12px 0 0; font-size: .9rem; }
+    .journey { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .card { padding: 20px; border: 1px solid var(--line); border-radius: 17px; background: var(--card); }
+    .card p { margin: 0; }
+    .detail { margin: 9px 0; border: 1px solid var(--line); border-radius: 15px; background: var(--card); }
+    summary { display: flex; cursor: pointer; list-style: none; align-items: center; justify-content: space-between; padding: 17px 19px; font-weight: 750; }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { color: var(--green); content: "+"; font-size: 1.2rem; }
+    details[open] summary::after { content: "−"; }
+    .body { padding: 0 20px 18px; }
+    .body p { margin: 0; }
+    .body pre { overflow-x: auto; padding: 14px; border-radius: 10px; background: #f0f3ec; color: var(--ink); font-size: .82rem; line-height: 1.55; }
+    .body a, footer a { color: var(--green); }
+    .safety { border-color: #e8c8bb; }
+    .safety h3 { color: var(--orange); }
+    footer { margin-top: 36px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: .86rem; }
+    @media (max-width: 700px) {
+      .journey { grid-template-columns: 1fr; }
+      main { width: min(100% - 24px, 1000px); padding-top: 30px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="eyebrow">Technical blueprint · Sahyog AI</div>
+      <h1>Small pieces, one real flow</h1>
+      <p class="lede">A local Streamlit app connects a real Gemini assessment to a relief-operations dashboard—without accounts, databases, or fake AI results.</p>
+      <span class="badge">Spec approved</span>
+    </header>
+
+    <section aria-labelledby="flow-title">
+      <h2 id="flow-title">How the report moves through the app</h2>
+      <div class="flow">
+        <svg viewBox="0 0 940 235" role="img" aria-labelledby="diagram-title diagram-description">
+          <title id="diagram-title">Sahyog AI technical data flow</title>
+          <desc id="diagram-description">A report form in Streamlit sends details to the Gemini service. Gemini returns structured data, which Pydantic validates before the report is stored in session memory and shown in the dashboard.</desc>
+          <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#1d6b50"></path></marker></defs>
+          <rect x="10" y="52" width="170" height="126" rx="16" fill="#fffefa" stroke="#dce2d8" stroke-width="2"></rect>
+          <text x="30" y="89" fill="#10251f" font-size="17" font-weight="700">Streamlit form</text>
+          <text x="30" y="119" fill="#53645d" font-size="14">Location · category</text>
+          <text x="30" y="143" fill="#53645d" font-size="14">Crisis description</text>
+          <path d="M190 115H237" stroke="#1d6b50" stroke-width="3" marker-end="url(#arrow)"></path>
+          <rect x="250" y="52" width="188" height="126" rx="16" fill="#1d6b50"></rect>
+          <text x="270" y="89" fill="#fffefa" font-size="17" font-weight="700">Gemini service</text>
+          <text x="270" y="119" fill="#e2eee5" font-size="14">JSON score + steps</text>
+          <text x="270" y="143" fill="#e2eee5" font-size="14">API key stays local</text>
+          <path d="M448 115H495" stroke="#1d6b50" stroke-width="3" marker-end="url(#arrow)"></path>
+          <rect x="508" y="52" width="188" height="126" rx="16" fill="#fffefa" stroke="#dce2d8" stroke-width="2"></rect>
+          <text x="528" y="89" fill="#10251f" font-size="17" font-weight="700">Validate + store</text>
+          <text x="528" y="119" fill="#53645d" font-size="14">Pydantic schema</text>
+          <text x="528" y="143" fill="#53645d" font-size="14">Session memory only</text>
+          <path d="M706 115H753" stroke="#1d6b50" stroke-width="3" marker-end="url(#arrow)"></path>
+          <rect x="766" y="52" width="164" height="126" rx="16" fill="#fffefa" stroke="#dce2d8" stroke-width="2"></rect>
+          <text x="786" y="89" fill="#10251f" font-size="17" font-weight="700">Dashboard</text>
+          <text x="786" y="119" fill="#53645d" font-size="14">Review · status</text>
+          <text x="786" y="143" fill="#53645d" font-size="14">Sample volunteers</text>
+        </svg>
+        <p>If Gemini fails or returns unusable data, validation stops the flow and the UI shows an error instead of a made-up success.</p>
+      </div>
+    </section>
+
+    <section aria-labelledby="journey-title">
+      <h2 id="journey-title">The pieces</h2>
+      <div class="journey">
+        <article class="card"><h3>Report form · <code>app.py</code></h3><p>Collects and validates user input, shows the safety boundary, and starts assessment.</p></article>
+        <article class="card"><h3>Gemini · <code>sahyog_ai/gemini.py</code></h3><p>Sends the report to the model with a structured output request and explicit error handling.</p></article>
+        <article class="card"><h3>Data checks · <code>sahyog_ai/models.py</code></h3><p>Checks the score and action steps before any AI result is treated as a report assessment.</p></article>
+        <article class="card"><h3>Operations · <code>app.py</code></h3><p>Shows reports, filters active/resolved items, updates statuses, and explains the empty state.</p></article>
+        <article class="card"><h3>Volunteer sample · <code>app.py</code></h3><p>Shows example statuses with clear labels; does not suggest real availability or dispatch.</p></article>
+        <article class="card safety"><h3>Safety</h3><p>AI output is informational only; the app is not an emergency service and advises contacting local emergency services for immediate danger.</p></article>
+      </div>
+    </section>
+
+    <section aria-labelledby="files-title">
+      <h2 id="files-title">Build map & run it</h2>
+      <details class="detail" open>
+        <summary>Planned project files</summary>
+        <div class="body"><pre>sahyog-ai/
+├── app.py                    # Report form, dashboard, current-session data
+├── sahyog_ai/
+│   ├── __init__.py
+│   ├── gemini.py              # Gemini API request + failure handling
+│   └── models.py              # Validated assessment + report shapes
+├── requirements.txt          # Streamlit, google-genai, Pydantic
+├── .env.example              # Secret-free configuration example
+├── .gitignore                # Ignore local credentials/profile
+├── README.md                 # Setup, safety, and demo steps
+└── devpost/                  # Approved project plans</pre></div>
+      </details>
+      <details class="detail">
+        <summary>Local start command</summary>
+        <div class="body"><p>Use Python 3.10+, install requirements, set <code>GEMINI_API_KEY</code> locally, then run <code>streamlit run app.py</code>. Open the localhost URL Streamlit prints. Never commit the key; use the same local app for the required demo recording.</p></div>
+      </details>
+      <details class="detail">
+        <summary>Data, costs, and limits</summary>
+        <div class="body"><p>Reports stay in the Streamlit session and disappear when the app restarts. The Gemini API requires internet and a key; account quotas or charges can apply. Check <a href="https://ai.google.dev/gemini-api/docs/pricing">current pricing</a> and <a href="https://ai.google.dev/gemini-api/docs/rate-limits">rate limits</a>. No database or hosting service is used.</p></div>
+      </details>
+    </section>
+
+    <footer>Canonical technical blueprint: <a href="./spec.md">spec.md</a> · The Markdown document is authoritative.</footer>
+  </main>
+</body>
+</html>

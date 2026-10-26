@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10251f">
+  <title>Sahyog AI — Product Requirements</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #10251f;
+      --muted: #53645d;
+      --paper: #f7f6ef;
+      --card: #fffefa;
+      --line: #dce2d8;
+      --green: #1d6b50;
+      --lime: #d8f28b;
+      --red: #a33f32;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); }
+    main { width: min(100% - 32px, 1000px); margin: 0 auto; padding: 42px 0 72px; }
+    .eyebrow { color: var(--green); font-size: .78rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+    h1 { margin: 12px 0; font-size: clamp(2.5rem, 7vw, 4.5rem); line-height: 1; letter-spacing: -.06em; }
+    h2 { margin: 0 0 16px; font-size: 1.55rem; letter-spacing: -.035em; }
+    h3 { margin: 0 0 8px; font-size: 1.02rem; }
+    p { color: var(--muted); line-height: 1.65; }
+    .lede { max-width: 740px; font-size: 1.12rem; }
+    .badge { display: inline-block; padding: 7px 11px; border: 1px solid var(--line); border-radius: 99px; background: var(--card); color: var(--muted); font-size: .82rem; }
+    .badge::before { display: inline-block; width: 8px; height: 8px; margin-right: 8px; border-radius: 50%; background: #d49b38; content: ""; }
+    section { margin-top: 38px; }
+    .journey { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+    .step { position: relative; min-height: 150px; padding: 18px; border: 1px solid var(--line); border-radius: 17px; background: var(--card); }
+    .step:not(:last-child)::after { position: absolute; z-index: 1; top: 25px; right: -13px; color: var(--green); content: "→"; font-size: 1.2rem; font-weight: 800; }
+    .num { display: grid; width: 28px; height: 28px; margin-bottom: 18px; place-items: center; border-radius: 50%; background: var(--lime); font-size: .8rem; font-weight: 800; }
+    .step p { margin: 0; font-size: .9rem; }
+    .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .card { padding: 21px; border: 1px solid var(--line); border-radius: 17px; background: var(--card); }
+    .card p { margin: 0; }
+    .card ul { margin: 8px 0 0; padding-left: 20px; color: var(--muted); line-height: 1.65; }
+    .wide { grid-column: 1 / -1; }
+    .safety { border-color: #e9c5b9; background: #fff8f3; }
+    .safety h3 { color: var(--red); }
+    details { margin: 9px 0; border: 1px solid var(--line); border-radius: 15px; background: var(--card); }
+    summary { display: flex; cursor: pointer; list-style: none; align-items: center; justify-content: space-between; padding: 17px 19px; font-weight: 750; }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { color: var(--green); content: "+"; font-size: 1.2rem; }
+    details[open] summary::after { content: "−"; }
+    .detail-body { padding: 0 20px 18px; }
+    .detail-body p { margin: 0 0 10px; }
+    .criteria { padding: 0; list-style: none; }
+    .criteria li { margin: 7px 0; color: var(--muted); line-height: 1.55; }
+    .criteria li::before { margin-right: 9px; color: var(--green); content: "□"; font-weight: 800; }
+    .foot { margin-top: 36px; padding-top: 18px; border-top: 1px solid var(--line); font-size: .86rem; }
+    @media (max-width: 760px) {
+      .journey { grid-template-columns: 1fr; }
+      .step { min-height: 0; }
+      .step:not(:last-child)::after { top: auto; right: 18px; bottom: -17px; content: "↓"; }
+      .layout { grid-template-columns: 1fr; }
+      .wide { grid-column: auto; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="eyebrow">Product requirements · Sahyog AI</div>
+      <h1>From report to response</h1>
+      <p class="lede">A rapid community disaster and relief coordination app for citizens needing help and local responders coordinating relief.</p>
+      <span class="badge">PRD approved</span>
+    </header>
+
+    <section aria-labelledby="journey-title">
+      <h2 id="journey-title">The core journey</h2>
+      <div class="journey">
+        <article class="step"><span class="num">1</span><h3>Open</h3><p>Enter an emergency report or review the operations dashboard.</p></article>
+        <article class="step"><span class="num">2</span><h3>Describe</h3><p>Provide location, choose a category, and describe the crisis.</p></article>
+        <article class="step"><span class="num">3</span><h3>Assess</h3><p>Gemini returns an urgency score and step-by-step recommendation.</p></article>
+        <article class="step"><span class="num">4</span><h3>Coordinate</h3><p>Responders review the report and AI output in operations.</p></article>
+        <article class="step"><span class="num">5</span><h3>Resolve</h3><p>Update status to resolved, or return it to active if needed.</p></article>
+      </div>
+    </section>
+
+    <section aria-labelledby="screens-title">
+      <h2 id="screens-title">Surfaces & experience</h2>
+      <div class="layout">
+        <article class="card"><h3>Emergency report</h3><p>One form collects location, Medical/Food/Water/Shelter category, and a crisis description. Missing required details get a clear prompt; no report is created until complete.</p></article>
+        <article class="card"><h3>Operations dashboard</h3><p>Reports show category, location, description, AI urgency, recommendation, and status. Responders can focus on active or resolved reports and change a report's status.</p></article>
+        <article class="card"><h3>Look and feel</h3><p>Fast, clear, and practical for an emergency context. Make status and urgency easy to distinguish. No specific font or visual reference was provided.</p></article>
+        <article class="card"><h3>Volunteer status</h3><p>Show a simple volunteer-status view. Do not imply volunteers are verified, available, or assigned; full matching is outside this proof of concept.</p></article>
+        <article class="card safety wide"><h3>Important safety boundary</h3><p>AI output is informational prioritization support—not authoritative medical, rescue, or dispatch instruction. This demo is not an emergency service. Anyone facing immediate danger should contact local emergency services.</p></article>
+      </div>
+    </section>
+
+    <section aria-labelledby="behavior-title">
+      <h2 id="behavior-title">Behavior & proof</h2>
+      <details open>
+        <summary>Submit a report and receive AI assessment</summary>
+        <div class="detail-body">
+          <p>On valid submission, request Gemini urgency scoring and a step-by-step dispatch recommendation. Show the result with the report; do not fabricate successful AI output.</p>
+          <ul class="criteria">
+            <li>A valid report receives a Gemini-generated score and recommendation.</li>
+            <li>The user can identify the urgency and recommendation after submission.</li>
+            <li>Missing input is explained and does not create a report.</li>
+            <li>Gemini failure is visible, offers retry, and is not shown as a successful assessment.</li>
+          </ul>
+        </div>
+      </details>
+      <details>
+        <summary>Review and update relief operations</summary>
+        <div class="detail-body">
+          <p>A successful report appears in operations as active. Responders can mark it resolved or return it to active.</p>
+          <ul class="criteria">
+            <li>Submitted details, AI assessment, recommendation, and active status appear together.</li>
+            <li>Status changes are reflected in the dashboard and corresponding status view.</li>
+            <li>An empty dashboard explains that reports appear after submission.</li>
+            <li>Volunteer status is visible without implying assignment or availability.</li>
+          </ul>
+        </div>
+      </details>
+      <details>
+        <summary>Failure, empty, and demo states</summary>
+        <div class="detail-body">
+          <ul class="criteria">
+            <li>Show a clear empty state before the first report.</li>
+            <li>Indicate when Gemini analysis is in progress.</li>
+            <li>On unusable or failed AI output, explain the failure and provide retry.</li>
+            <li>The proof demonstrates reports in the current app run; no durable storage or live multi-user synchronization is promised.</li>
+          </ul>
+        </div>
+      </details>
+    </section>
+
+    <section class="layout" aria-label="Scope and decisions">
+      <article class="card"><h3>Included in this proof</h3><ul><li>Emergency report form and validation</li><li>Gemini urgency assessment and recommendation</li><li>Operations dashboard with active/resolved status</li><li>Volunteer-status display and clear safety messaging</li></ul></article>
+      <article class="card"><h3>Deferred or not a goal</h3><ul><li>Durable storage and live synchronization</li><li>Verified volunteer assignment or supply matching</li><li>Real-world dispatch or emergency-service replacement</li></ul></article>
+    </section>
+
+    <footer class="foot">Canonical product plan: <a href="./prd.md">prd.md</a> · Source scope: <a href="./scope.md">scope.md</a>. The Markdown PRD is authoritative.</footer>
+  </main>
+</body>
+</html>

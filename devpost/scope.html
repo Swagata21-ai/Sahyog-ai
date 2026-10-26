@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10251f">
+  <title>Sahyog AI — Project Scope</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #10251f;
+      --muted: #53645d;
+      --paper: #f7f6ef;
+      --card: #fffefa;
+      --line: #dce2d8;
+      --green: #1d6b50;
+      --lime: #d8f28b;
+      --orange: #c45d36;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); }
+    main { width: min(100% - 32px, 980px); margin: 0 auto; padding: 44px 0 72px; }
+    .eyebrow { color: var(--green); font-size: .78rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+    h1 { max-width: 720px; margin: 12px 0 14px; font-size: clamp(2.7rem, 8vw, 5.5rem); line-height: .96; letter-spacing: -.065em; }
+    .lede { max-width: 680px; color: var(--muted); font-size: 1.15rem; line-height: 1.65; }
+    .badge { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); color: var(--muted); font-size: .83rem; }
+    .badge::before { width: 8px; height: 8px; border-radius: 50%; background: #d49b38; content: ""; }
+    section { margin-top: 42px; }
+    h2 { margin: 0 0 14px; font-size: 1.55rem; letter-spacing: -.035em; }
+    .diagram { overflow: hidden; padding: 24px; border: 1px solid var(--line); border-radius: 22px; background: #eaf0e6; }
+    .diagram svg { display: block; width: 100%; height: auto; }
+    .diagram p { margin: 14px 0 0; color: var(--muted); font-size: .9rem; line-height: 1.55; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .card { padding: 22px; border: 1px solid var(--line); border-radius: 18px; background: var(--card); }
+    .card h3 { margin: 0 0 9px; font-size: 1rem; }
+    .card p, .card li { color: var(--muted); line-height: 1.6; }
+    .card p { margin: 0; }
+    .card ul { margin: 8px 0 0; padding-left: 20px; }
+    .kernel { border-color: #b3d2be; background: #f0f7ea; }
+    .kernel h3 { color: var(--green); }
+    .proof { border-color: var(--ink); background: var(--ink); color: white; }
+    .proof p { color: #d6e1d8; }
+    .proof strong { color: var(--lime); }
+    .boundary { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    details { border: 1px solid var(--line); border-radius: 16px; background: var(--card); }
+    summary { display: flex; cursor: pointer; list-style: none; align-items: center; justify-content: space-between; padding: 18px 20px; font-weight: 750; }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { color: var(--green); content: "+"; font-size: 1.25rem; }
+    details[open] summary::after { content: "−"; }
+    details ul { margin: 0; padding: 0 24px 20px 40px; color: var(--muted); line-height: 1.7; }
+    .cut { grid-column: 1 / -1; }
+    .cut summary::after { color: var(--orange); }
+    .foot { margin-top: 36px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: .86rem; }
+    @media (max-width: 640px) {
+      main { width: min(100% - 24px, 980px); padding-top: 30px; }
+      .grid, .boundary { grid-template-columns: 1fr; }
+      .cut { grid-column: auto; }
+      .diagram { padding: 14px; }
+      .diagram svg text { font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="eyebrow">Project scope · Proof of concept</div>
+      <h1>Sahyog AI</h1>
+      <p class="lede">A rapid community disaster and relief coordination app that uses Gemini AI to help prioritize local emergencies and coordinate relief.</p>
+      <span class="badge">Scope approved</span>
+    </header>
+
+    <section aria-labelledby="flow-title">
+      <h2 id="flow-title">The idea in one flow</h2>
+      <div class="diagram">
+        <svg viewBox="0 0 900 240" role="img" aria-labelledby="diagram-title diagram-description">
+          <title id="diagram-title">Sahyog AI report-to-response flow</title>
+          <desc id="diagram-description">A citizen submits a local emergency report. Gemini assesses urgency and recommends next steps. Responders review and track the report on an operations dashboard.</desc>
+          <defs>
+            <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+              <path d="M0 0L10 5L0 10z" fill="#1d6b50"></path>
+            </marker>
+          </defs>
+          <rect x="12" y="45" width="230" height="145" rx="18" fill="#fffefa" stroke="#dce2d8" stroke-width="2"></rect>
+          <circle cx="54" cy="88" r="17" fill="#d8f28b"></circle>
+          <text x="83" y="94" fill="#10251f" font-size="17" font-weight="700">Citizen report</text>
+          <text x="32" y="130" fill="#53645d" font-size="14">Location · category</text>
+          <text x="32" y="153" fill="#53645d" font-size="14">Crisis description</text>
+          <path d="M252 118H326" stroke="#1d6b50" stroke-width="3" marker-end="url(#arrow)"></path>
+          <rect x="337" y="45" width="230" height="145" rx="18" fill="#1d6b50"></rect>
+          <circle cx="379" cy="88" r="17" fill="#d8f28b"></circle>
+          <text x="408" y="94" fill="#fffefa" font-size="17" font-weight="700">Gemini AI</text>
+          <text x="357" y="130" fill="#e2eee5" font-size="14">Urgency score</text>
+          <text x="357" y="153" fill="#e2eee5" font-size="14">Action recommendation</text>
+          <path d="M577 118H651" stroke="#1d6b50" stroke-width="3" marker-end="url(#arrow)"></path>
+          <rect x="662" y="45" width="226" height="145" rx="18" fill="#fffefa" stroke="#dce2d8" stroke-width="2"></rect>
+          <circle cx="704" cy="88" r="17" fill="#d8f28b"></circle>
+          <text x="733" y="94" fill="#10251f" font-size="17" font-weight="700">Relief operations</text>
+          <text x="682" y="130" fill="#53645d" font-size="14">Review · prioritize</text>
+          <text x="682" y="153" fill="#53645d" font-size="14">Track report status</text>
+        </svg>
+        <p>One connected proof: a report becomes an AI-assisted recommendation that responders can review and track.</p>
+      </div>
+    </section>
+
+    <section class="grid" aria-label="Scope summary">
+      <article class="card kernel">
+        <h3>The unique kernel</h3>
+        <p>Gemini turns a citizen's urgent local report into a severity score and step-by-step dispatch recommendation, helping local responders prioritize what needs attention.</p>
+      </article>
+      <article class="card">
+        <h3>Who it's for</h3>
+        <p>Citizens and victims needing immediate help or essentials, plus local NGO teams, volunteers, and rescue coordinators organizing a response.</p>
+      </article>
+      <article class="card">
+        <h3>The core loop</h3>
+        <p>Submit a location, emergency category, and description; review the urgency assessment and recommended next steps; track the report as active or resolved.</p>
+      </article>
+      <article class="card">
+        <h3>Identity & motivation</h3>
+        <p>Fast, clear, and practical. The learner wants to build Sahyog AI and get a working proof of concept. Chosen stack: Python, Streamlit, and Google Gemini.</p>
+      </article>
+      <article class="card proof">
+        <h3>What "working" looks like</h3>
+        <p>In a short demo, submit an emergency and see <strong>Gemini return urgency and actionable guidance</strong>, then find that report in the operations view with its status.</p>
+      </article>
+      <article class="card">
+        <h3>Safety boundary</h3>
+        <p>This proof of concept demonstrates coordination; it does not replace official emergency services or provide authoritative dispatch instructions.</p>
+      </article>
+    </section>
+
+    <section aria-labelledby="boundary-title">
+      <h2 id="boundary-title">The boundary</h2>
+      <div class="boundary">
+        <details open>
+          <summary>Now · prove the core idea</summary>
+          <ul>
+            <li>Emergency form for location, medical/food/water/shelter category, and crisis description.</li>
+            <li>Gemini urgency scoring and a step-by-step dispatch recommendation.</li>
+            <li>Operations dashboard for active/resolved reports and volunteer status.</li>
+            <li>A connected report-to-assessment-to-operations demo flow.</li>
+          </ul>
+        </details>
+        <details>
+          <summary>Later · beyond this proof</summary>
+          <ul>
+            <li>Real-time coordination and operational deployment for actual emergencies.</li>
+            <li>More complete nearby volunteer and supply matching.</li>
+          </ul>
+        </details>
+        <details class="cut">
+          <summary>Cut · not what this demo claims</summary>
+          <ul>
+            <li>Replacing official emergency services or presenting AI output as authoritative dispatch instructions.</li>
+          </ul>
+        </details>
+      </div>
+    </section>
+
+    <footer class="foot">Canonical plan: <a href="./scope.md">scope.md</a> · This visual page is a companion; the Markdown document remains authoritative.</footer>
+  </main>
+</body>
+</html>

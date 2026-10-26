@@ -1,0 +1,6 @@
+.env
+.env.*
+!.env.example
+/devpost/learner-profile.md
+__pycache__/
+*.py[cod]
