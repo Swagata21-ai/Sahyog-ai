@@ -4,7 +4,7 @@ import logging
 import streamlit as st
 
 from sahyog_ai.gemini import GeminiAssessmentError, assess_report
-from sahyog_ai.models import EmergencyReport
+from sahyog_ai.models import Assessment, EmergencyReport
 
 logging.basicConfig(level=logging.INFO)
 
@@ -64,6 +64,14 @@ st.markdown(
     }
     .status-active { background: #e5f2e9; color: #14583e; }
     .status-resolved { background: #e9edf0; color: #465660; }
+    .source-demo {
+      display: inline-block; border-radius: 99px; padding: .2rem .65rem;
+      background: #fff1c9; color: #71520b; font-size: .8rem; font-weight: 750;
+    }
+    .source-gemini {
+      display: inline-block; border-radius: 99px; padding: .2rem .65rem;
+      background: #e5f2e9; color: #14583e; font-size: .8rem; font-weight: 750;
+    }
     .report-meta { color: var(--muted); font-size: .88rem; }
     .muted-note { color: var(--muted); font-size: .86rem; }
     div[data-testid="stTabs"] button { font-weight: 700; }
@@ -78,6 +86,61 @@ st.markdown(
 
 if "reports" not in st.session_state:
     st.session_state.reports = []
+
+
+def make_demo_reports() -> list[EmergencyReport]:
+    return [
+        EmergencyReport(
+            location="Riverside Ward (sample)",
+            category="Water",
+            description=(
+                "Sample report: heavy rain is affecting several ground-floor homes; "
+                "residents request clean water."
+            ),
+            assessment=Assessment(
+                severity_score=4,
+                urgency_rationale="Illustrative example only; not a real assessment.",
+                action_steps=[
+                    "Example: confirm reported needs with a local coordinator.",
+                    "Example: check whether a verified clean-water source is nearby.",
+                ],
+            ),
+            assessment_source="Demo example",
+        ),
+        EmergencyReport(
+            location="Market Street (sample)",
+            category="Food",
+            description=(
+                "Sample report: a community center requests food packs for residents."
+            ),
+            assessment=Assessment(
+                severity_score=3,
+                urgency_rationale="Illustrative example only; not a real assessment.",
+                action_steps=[
+                    "Example: confirm the number of people and dietary needs.",
+                    "Example: identify a verified distribution point.",
+                ],
+            ),
+            assessment_source="Demo example",
+        ),
+        EmergencyReport(
+            location="East Clinic (sample)",
+            category="Medical",
+            description=(
+                "Sample report: coordinators have acknowledged a request for basic supplies."
+            ),
+            assessment=Assessment(
+                severity_score=2,
+                urgency_rationale="Illustrative example only; not a real assessment.",
+                action_steps=[
+                    "Example: confirm the request with the reporting coordinator.",
+                ],
+            ),
+            assessment_source="Demo example",
+            status="Resolved",
+        ),
+    ]
+
 
 st.markdown(
     """
@@ -97,7 +160,10 @@ report_tab, operations_tab = st.tabs(["＋  Submit a report", "▤  Operations"]
 
 with report_tab:
     st.subheader("Tell us what is happening")
-    st.caption("Share the essentials so the response team can assess the need.")
+    st.caption(
+        "Share the essentials so the response team can assess the need. "
+        "To explore the dashboard without a Gemini key, open Operations and load sample reports."
+    )
     with st.form("emergency_report", clear_on_submit=False):
         location = st.text_input(
             "Location",
@@ -154,12 +220,33 @@ with report_tab:
 
 with operations_tab:
     reports = st.session_state.reports
+    has_demo_reports = any(
+        report.assessment_source == "Demo example" for report in reports
+    )
     active_count = sum(report.status == "Active" for report in reports)
     resolved_count = len(reports) - active_count
     urgent_count = sum(report.assessment.severity_score >= 4 for report in reports)
 
     st.subheader("Relief operations")
     st.caption("Reports submitted during this app session.")
+    demo_action_column, demo_note_column = st.columns([1, 2])
+    with demo_action_column:
+        if has_demo_reports:
+            if st.button("Clear sample reports", use_container_width=True):
+                st.session_state.reports = [
+                    report
+                    for report in reports
+                    if report.assessment_source != "Demo example"
+                ]
+                st.rerun()
+        elif st.button("Load sample reports", use_container_width=True):
+            st.session_state.reports.extend(make_demo_reports())
+            st.rerun()
+    with demo_note_column:
+        st.caption(
+            "No API key needed for examples. Sample scores and steps are illustrative, "
+            "not Gemini output or real triage."
+        )
 
     metric_columns = st.columns(3)
     metric_columns[0].metric("Active", active_count)
@@ -197,6 +284,21 @@ with operations_tab:
             score = report.assessment.severity_score
             score_class = "score-high" if score >= 4 else "score-medium" if score == 3 else ""
             status_class = "status-active" if report.status == "Active" else "status-resolved"
+            is_demo = report.assessment_source == "Demo example"
+            source_class = "source-demo" if is_demo else "source-gemini"
+            assessment_label = (
+                "Demo example · not Gemini" if is_demo else "Gemini assessment"
+            )
+            rationale_label = (
+                "Illustrative example rationale · not AI"
+                if is_demo
+                else "AI urgency rationale"
+            )
+            steps_label = (
+                "Example coordination steps · not AI"
+                if is_demo
+                else "Recommended coordination steps"
+            )
 
             with st.container(border=True):
                 heading_column, action_column = st.columns([3, 1])
@@ -204,7 +306,8 @@ with operations_tab:
                     st.text(f"{report.category} · {report.location}")
                     st.markdown(
                         f'<span class="score {score_class}">Urgency {score}/5</span> '
-                        f'<span class="status {status_class}">{escape(report.status)}</span>',
+                        f'<span class="status {status_class}">{escape(report.status)}</span> '
+                        f'<span class="{source_class}">{escape(assessment_label)}</span>',
                         unsafe_allow_html=True,
                     )
                 with action_column:
@@ -222,9 +325,9 @@ with operations_tab:
                         st.rerun()
 
                 st.text(report.description)
-                st.markdown("**AI urgency rationale**")
+                st.markdown(f"**{rationale_label}**")
                 st.text(report.assessment.urgency_rationale)
-                with st.expander("Recommended coordination steps"):
+                with st.expander(steps_label):
                     for index, step in enumerate(report.assessment.action_steps, start=1):
                         st.text(f"{index}. {step}")
 

@@ -7,17 +7,17 @@ status: approved
 
 ## How This Works, In Plain Language
 
-Sahyog AI runs on your computer as a Streamlit app in a browser tab. You fill in a report, and the app sends its details to Google's Gemini service, which returns a severity score and action steps. The app checks that answer, then keeps the completed report in memory while the app is running and shows it on the operations dashboard. You can change a report's status there. The volunteer panel uses clearly labeled sample information; it does not claim that real people are available or dispatched.
+Sahyog AI runs on your computer as a Streamlit app in a browser tab. With a Gemini key configured, you fill in a report and the app sends its details to Google's Gemini service, which returns a severity score and action steps. The app checks that answer, then keeps the completed report in memory while the app is running and shows it on the operations dashboard. You can change a report's status there. Without a key, you can load clearly labeled sample reports to explore the dashboard, but these are not AI results. The volunteer panel also uses sample information; it does not claim that real people are available or dispatched.
 
 There is no account, database, or live multi-user connection in this proof of concept. Reports disappear when the app process restarts. This keeps the demo small while preserving the central idea: a real Gemini assessment connected to a usable operations view.
 
 ## The Core Journey Through the System
 
-1. A person enters a location, category, and crisis description in the Streamlit form.
+1. A person enters a location, category, and crisis description in the Streamlit form, or loads the separate sample dataset to preview operations without a key.
 2. `app.py` checks the required fields and passes the report text to `sahyog_ai/gemini.py`.
 3. The Gemini service uses the API key from the local environment and requests structured JSON from Gemini. `sahyog_ai/models.py` validates the returned score and action steps.
 4. If the response is valid, `app.py` creates a report and stores it in Streamlit's session state. The same run displays it on the operations dashboard.
-5. A responder changes the report status in the dashboard. The in-memory record updates and Streamlit redraws the current view.
+5. A responder changes a report's status in the dashboard. The in-memory record updates and Streamlit redraws the current view.
 6. If there is no API key, the service call fails, or the answer cannot be validated, the app shows an explicit error. It does not create a successful-looking report or invent an AI result.
 
 PRD ref: `prd.md > The Core Journey`, `Features and Behavior > Emergency report and AI assessment`, and `Features and Behavior > Relief operations dashboard`.
@@ -85,7 +85,7 @@ Implements `prd.md > Features and Behavior > Emergency report and AI assessment`
 
 ### Relief operations dashboard (`app.py`)
 
-Reads reports from session state, summarizes and filters active/resolved items, displays submitted details with validated AI results, and updates a report's status on responder action. Shows a useful empty state when there are no reports.
+Reads reports from session state, summarizes and filters active/resolved items, displays submitted details with validated AI results, and updates a report's status on responder action. Provides a separate load/clear action for explicitly labeled sample reports so the dashboard can be explored without Gemini credentials. Shows a useful empty state when there are no reports.
 
 Implements `prd.md > Features and Behavior > Relief operations dashboard`.
 
@@ -97,7 +97,7 @@ Implements `prd.md > Features and Behavior > Relief operations dashboard` and `S
 
 ## Data Model
 
-- **EmergencyReport:** `id` (unique string), `location` (string), `category` (Medical/Food/Water/Shelter), `description` (string), `urgency_score` (integer 1–5), `urgency_rationale` (string), `action_steps` (list of strings), `status` (active/resolved), and `created_at` (timestamp).
+- **EmergencyReport:** `id` (unique string), `location` (string), `category` (Medical/Food/Water/Shelter), `description` (string), `assessment` (validated score 1–5, rationale, and action steps), `assessment_source` (Gemini or clearly labeled demo example), `status` (active/resolved), and `created_at` (timestamp).
 - **Assessment:** Gemini-generated score, short rationale, and ordered recommendations, validated against a Pydantic schema before creating an EmergencyReport.
 - **Volunteer sample:** a small fixed list of example names/statuses in the app; clearly labeled as demonstration data and not connected to real volunteers.
 - **Storage and updates:** reports live in `st.session_state` for the current browser/app session. New reports are appended only after successful validation; status actions update the corresponding in-memory report. Refreshes during the same session preserve state according to Streamlit's session behavior; ending/restarting the app loses reports. There is no account, cross-user sharing, or durable storage.
@@ -137,6 +137,7 @@ No database, map service, hosting provider, messaging provider, or other externa
 ## Important Failure Modes
 
 - **Missing API key** → explain how to set `GEMINI_API_KEY`; keep the report unsubmitted and do not invent an assessment.
+- **No API key during a demo** → allow loading sample records to explore the dashboard, with every score and recommendation visibly marked as an example, not Gemini output.
 - **Gemini request failure or quota/network error** → show a concise failure message and retry option; do not add an unassessed report to the operations list.
 - **Malformed or unsafe-looking AI response** → reject it through schema/range validation and offer retry; display the fixed emergency-services disclaimer independently of the model response.
 - **Empty dashboard** → explain that submitted reports appear there and show the form.
@@ -145,6 +146,7 @@ No database, map service, hosting provider, messaging provider, or other externa
 
 - **One local Streamlit process with session-only report storage** instead of accounts, a shared database, and live synchronization — keeps setup small and is sufficient for a single-run demo; reports are lost when the app restarts.
 - **Static sample volunteer statuses** instead of live nearby volunteer matching — the POC has no verified volunteer data or coordination service; sample status is labeled as such.
+- **Static sample reports for no-key exploration** instead of fabricated AI output — reviewers can exercise dashboard behavior without credentials while the real Gemini path remains explicit and verifiable.
 - **Structured Gemini assessment in the submit flow** instead of background dispatch or automatic assignment — keeps the AI kernel visible and verifiable in the short demo.
 - **A simple 1–5 score** instead of an operational triage protocol — easy to display for the prototype, explicitly not validated for real-world decisions.
 

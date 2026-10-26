@@ -32,6 +32,8 @@ Open the local URL printed by Streamlit, usually `http://localhost:8501`.
 3. Resolve or reactivate a report and inspect the dashboard filters.
 4. Volunteer statuses in the demo are sample data, not confirmed availability or assignments.
 
+Without a Gemini API key, use **Load sample reports** in Operations to explore the dashboard and its status controls. These illustrative records are labeled as examples and are not Gemini results. Submitting a real report still requires a key.
+
 Reports live only in the current app session and are lost when the process restarts. The app does not synchronize between users or contact volunteers and emergency services. Gemini API usage may be subject to account rate limits or charges; check Google's current [pricing](https://ai.google.dev/gemini-api/docs/pricing) before use.
 
 ## Checks

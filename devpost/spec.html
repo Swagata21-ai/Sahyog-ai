@@ -100,7 +100,7 @@
         <article class="card"><h3>Report form · <code>app.py</code></h3><p>Collects and validates user input, shows the safety boundary, and starts assessment.</p></article>
         <article class="card"><h3>Gemini · <code>sahyog_ai/gemini.py</code></h3><p>Sends the report to the model with a structured output request and explicit error handling.</p></article>
         <article class="card"><h3>Data checks · <code>sahyog_ai/models.py</code></h3><p>Checks the score and action steps before any AI result is treated as a report assessment.</p></article>
-        <article class="card"><h3>Operations · <code>app.py</code></h3><p>Shows reports, filters active/resolved items, updates statuses, and explains the empty state.</p></article>
+        <article class="card"><h3>Operations · <code>app.py</code></h3><p>Shows reports, filters active/resolved items, updates statuses, and explains the empty state. A no-key preview loads separate sample records that are never presented as Gemini output.</p></article>
         <article class="card"><h3>Volunteer sample · <code>app.py</code></h3><p>Shows example statuses with clear labels; does not suggest real availability or dispatch.</p></article>
         <article class="card safety"><h3>Safety</h3><p>AI output is informational only; the app is not an emergency service and advises contacting local emergency services for immediate danger.</p></article>
       </div>
@@ -115,7 +115,7 @@
 ├── sahyog_ai/
 │   ├── __init__.py
 │   ├── gemini.py              # Gemini API request + failure handling
-│   └── models.py              # Validated assessment + report shapes
+│   └── models.py              # Validated assessment + report source
 ├── requirements.txt          # Streamlit, google-genai, Pydantic
 ├── .env.example              # Secret-free configuration example
 ├── .gitignore                # Ignore local credentials/profile
@@ -128,7 +128,7 @@
       </details>
       <details class="detail">
         <summary>Data, costs, and limits</summary>
-        <div class="body"><p>Reports stay in the Streamlit session and disappear when the app restarts. The Gemini API requires internet and a key; account quotas or charges can apply. Check <a href="https://ai.google.dev/gemini-api/docs/pricing">current pricing</a> and <a href="https://ai.google.dev/gemini-api/docs/rate-limits">rate limits</a>. No database or hosting service is used.</p></div>
+        <div class="body"><p>Reports stay in the Streamlit session and disappear when the app restarts. Real Gemini assessment requires internet and a key; account quotas or charges can apply. Without a key, load clearly labeled illustrative sample records to explore the dashboard—these are not AI output. Check <a href="https://ai.google.dev/gemini-api/docs/pricing">current pricing</a> and <a href="https://ai.google.dev/gemini-api/docs/rate-limits">rate limits</a>. No database or hosting service is used.</p></div>
       </details>
     </section>
 

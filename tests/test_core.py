@@ -122,6 +122,21 @@ class AssessmentTests(unittest.TestCase):
         next(button for button in app.button if button.label == "Reopen report").click().run()
         self.assertEqual(app.session_state["reports"][0].status, "Active")
 
+    def test_no_key_demo_loads_and_clears_labeled_sample_reports(self):
+        app = AppTest.from_file(Path(__file__).resolve().parents[1] / "app.py")
+        app.run()
+
+        next(button for button in app.button if button.label == "Load sample reports").click().run()
+        reports = app.session_state["reports"]
+        self.assertEqual(len(reports), 3)
+        self.assertTrue(all(report.assessment_source == "Demo example" for report in reports))
+        self.assertTrue(
+            any("Demo example · not Gemini" in element.value for element in app.markdown)
+        )
+
+        next(button for button in app.button if button.label == "Clear sample reports").click().run()
+        self.assertEqual(app.session_state["reports"], [])
+
 
 if __name__ == "__main__":
     unittest.main()

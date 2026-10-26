@@ -19,7 +19,7 @@ Build mode: fast
   Learner check: Open the local app, submit a sample emergency with your own locally configured Gemini key, and check that its urgency score and action steps appear. If you do not have a key configured yet, check that the app explains the missing key and does not invent an AI result.
   Commit: `Build Gemini emergency assessment flow`
 
-- [ ] **2. Review and manage relief operations**
+- [x] **2. Review and manage relief operations**
   Becomes usable: The dashboard shows submitted reports with clear urgency, active/resolved controls, empty and filtered views, and explicitly labeled sample volunteer statuses.
   Why now: Once the AI kernel works, responders can use its output in the agreed operations view; this finishes the core journey without adding persistence or real volunteer matching.
   PRD ref: `prd.md > The Core Journey`; `prd.md > Features and Behavior > Relief operations dashboard`; `prd.md > States and Boundaries`
@@ -36,6 +36,7 @@ Build mode: fast
 
 ## Final Review
 
+- [ ] Add a no-key dashboard demo with explicitly labeled sample assessments; verify it never presents samples as Gemini output.
 - [ ] Final review complete — feedback resolved and learner confirms ready to ship
 
 ## Code Tour and App Map
@@ -51,3 +52,6 @@ Reflection: [offered/answered/declined/already covered — personal answer belon
 Activity mode: [live app and editor, explicit static fallback, focused alternative, prior practice, or recap]
 
 ## Revisions
+
+- Live Gemini output was not verified in this environment because no `GEMINI_API_KEY` is configured; tests cover request wiring, response validation, and visible missing-key/transport failures. A real assessment still needs a locally configured key.
+- Added a no-key dashboard preview so hackathon reviewers can explore operations controls without credentials; sample results remain explicitly non-AI and real Gemini submissions still require a key.

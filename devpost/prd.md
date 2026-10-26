@@ -56,6 +56,7 @@ Source: `scope.md > The Unique Kernel`, `The Core Loop`, and `The POC Boundary`.
 - Reports are grouped or filterable by active and resolved status so responders can focus on outstanding needs.
 - A responder can mark an active report resolved; the visible status updates. A resolved report can be returned to active.
 - Volunteer status is represented in the dashboard as a simple operational view; full volunteer assignment and supply matching are outside this proof of concept.
+- A user can load clearly labeled sample reports to explore the dashboard without a Gemini API key. Sample assessments must be identified as examples, never as Gemini output.
 - When there are no reports, show an empty state that invites the user to submit a report.
 
 Acceptance criteria:
@@ -63,6 +64,7 @@ Acceptance criteria:
 - [ ] Marking a report resolved updates its status and resolved view; returning it to active is reflected as well.
 - [ ] With no reports, the dashboard explains that reports will appear after submission.
 - [ ] Volunteer status is visible without implying that a volunteer has been dispatched or assigned.
+- [ ] Sample reports can be loaded and cleared without an API key; every sample assessment is visibly labeled as illustrative and non-AI.
 
 Source: `scope.md > The Core Loop` and `The POC Boundary`.
 
@@ -72,6 +74,7 @@ Source: `scope.md > The Core Loop` and `The POC Boundary`.
 - **Invalid report** — Identify the missing required information; do not submit the report.
 - **Assessment in progress** — Indicate that the report is being analyzed while waiting for Gemini.
 - **Gemini failure** — Explain that the AI assessment could not be completed, allow retry, and do not present invented severity or recommendations as AI output.
+- **No-key demo** — Real report submissions still explain that Gemini needs a key. The user can separately load explicitly labeled sample reports to explore dashboard filters and status controls; sample data is not AI output.
 - **Successful report** — Show the report and generated assessment in the operations view as active.
 - **Resolved report** — Show resolved status in the dashboard; allow a responder to return it to active.
 - **AI and safety boundary** — AI recommendations are informational prioritization support only. The app is not an emergency service; people facing immediate danger should contact local emergency services.
@@ -84,6 +87,7 @@ Source: `scope.md > The POC Boundary`, `Later`, and `Explicitly Cut`.
 - Use the name Sahyog AI and the user-selected emergency categories Medical, Food, Water, and Shelter.
 - Use Gemini to assess urgency and produce a step-by-step recommendation.
 - Include both active/resolved crisis status and a volunteer-status view in the relief operations dashboard.
+- Allow dashboard exploration with explicitly labeled sample reports when no Gemini key is configured, without changing real report assessment behavior.
 - Keep this as a demonstrable proof of concept, not an operational emergency-response service.
 
 Source: `scope.md > The Unique Kernel`, `The POC Boundary`, and `Explicitly Cut`.
@@ -93,6 +97,7 @@ Source: `scope.md > The Unique Kernel`, `The POC Boundary`, and `Explicitly Cut`
 - A reporting interface for location, emergency category, and crisis description.
 - Gemini-generated urgency assessment and dispatch recommendation for a valid report.
 - A connected operations dashboard showing reports, AI output, active/resolved status, and volunteer status.
+- An optional no-key demo dataset whose illustrative assessments are clearly distinguished from Gemini output.
 - Clear empty, validation, in-progress, and AI-failure states.
 - A visible informational-only emergency guidance boundary.
 

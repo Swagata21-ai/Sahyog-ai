@@ -28,5 +28,6 @@ class EmergencyReport(BaseModel):
     category: Literal["Medical", "Food", "Water", "Shelter"]
     description: str
     assessment: Assessment
+    assessment_source: Literal["Gemini", "Demo example"] = "Gemini"
     status: Literal["Active", "Resolved"] = "Active"
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

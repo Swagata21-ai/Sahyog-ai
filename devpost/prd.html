@@ -86,7 +86,7 @@
       <h2 id="screens-title">Surfaces & experience</h2>
       <div class="layout">
         <article class="card"><h3>Emergency report</h3><p>One form collects location, Medical/Food/Water/Shelter category, and a crisis description. Missing required details get a clear prompt; no report is created until complete.</p></article>
-        <article class="card"><h3>Operations dashboard</h3><p>Reports show category, location, description, AI urgency, recommendation, and status. Responders can focus on active or resolved reports and change a report's status.</p></article>
+        <article class="card"><h3>Operations dashboard</h3><p>Reports show category, location, description, assessment source, urgency, recommendation, and status. Responders can focus on active or resolved reports and change a report's status. Sample cases can be loaded without a key and are never shown as Gemini output.</p></article>
         <article class="card"><h3>Look and feel</h3><p>Fast, clear, and practical for an emergency context. Make status and urgency easy to distinguish. No specific font or visual reference was provided.</p></article>
         <article class="card"><h3>Volunteer status</h3><p>Show a simple volunteer-status view. Do not imply volunteers are verified, available, or assigned; full matching is outside this proof of concept.</p></article>
         <article class="card safety wide"><h3>Important safety boundary</h3><p>AI output is informational prioritization support—not authoritative medical, rescue, or dispatch instruction. This demo is not an emergency service. Anyone facing immediate danger should contact local emergency services.</p></article>
@@ -116,6 +116,7 @@
             <li>Status changes are reflected in the dashboard and corresponding status view.</li>
             <li>An empty dashboard explains that reports appear after submission.</li>
             <li>Volunteer status is visible without implying assignment or availability.</li>
+            <li>Sample reports can be loaded and cleared without a key; sample assessments are clearly labeled as non-AI examples.</li>
           </ul>
         </div>
       </details>
@@ -126,6 +127,7 @@
             <li>Show a clear empty state before the first report.</li>
             <li>Indicate when Gemini analysis is in progress.</li>
             <li>On unusable or failed AI output, explain the failure and provide retry.</li>
+            <li>Without a key, users can load a separate sample dataset; real report submission still explains that Gemini needs a key.</li>
             <li>The proof demonstrates reports in the current app run; no durable storage or live multi-user synchronization is promised.</li>
           </ul>
         </div>
@@ -133,7 +135,7 @@
     </section>
 
     <section class="layout" aria-label="Scope and decisions">
-      <article class="card"><h3>Included in this proof</h3><ul><li>Emergency report form and validation</li><li>Gemini urgency assessment and recommendation</li><li>Operations dashboard with active/resolved status</li><li>Volunteer-status display and clear safety messaging</li></ul></article>
+      <article class="card"><h3>Included in this proof</h3><ul><li>Emergency report form and validation</li><li>Gemini urgency assessment and recommendation</li><li>Operations dashboard with active/resolved status</li><li>No-key sample preview, clearly distinct from Gemini output</li><li>Volunteer-status display and clear safety messaging</li></ul></article>
       <article class="card"><h3>Deferred or not a goal</h3><ul><li>Durable storage and live synchronization</li><li>Verified volunteer assignment or supply matching</li><li>Real-world dispatch or emergency-service replacement</li></ul></article>
     </section>
 

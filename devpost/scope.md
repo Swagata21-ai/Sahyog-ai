@@ -30,6 +30,7 @@ In a short demo, submit a local emergency report and see Gemini return a severit
 - Gemini-powered urgency scoring and a step-by-step dispatch recommendation.
 - A relief operations dashboard showing reports as active or resolved and volunteer status.
 - A demonstrable coordination flow connecting a report and its AI assessment to the operations view.
+- An explicitly labeled sample-data path to explore dashboard behavior without an API key; sample results must not be presented as Gemini output.
 
 ## Later
 - Real-time coordination and operational deployment for actual emergencies.
